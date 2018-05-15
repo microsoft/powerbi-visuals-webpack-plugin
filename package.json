@@ -1,0 +1,25 @@
+{
+  "name": "powerbi-visuals-webpack-plugin",
+  "version": "1.0.0",
+  "description": "PowerBI Custom Visuals webpack plugin",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "custom",
+    "visuals",
+    "powerbi",
+    "visualization",
+    "analytics"
+  ],
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "fs-extra": "6.0.1",
+    "base64-img": "1.0.4",
+    "jszip": "3.1.5",
+    "lodash": "^4.17.5",
+    "uglify-es": "3.3.9"
+  }
+}
