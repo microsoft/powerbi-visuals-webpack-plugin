@@ -41,6 +41,36 @@ function PowerBICustomVisualsWebpackPlugin(options) {
   this.options = Object.assign(defaultOptions, options);
 }
 
+PowerBICustomVisualsWebpackPlugin.prototype.parseLocalizationString = function(options) {
+  const encoding = "utf8";
+  var stringResources = {};
+  if (options.stringResources && options.stringResources.length) {
+    options.stringResources.forEach(resourcePath => {
+      let resource = fs.existsSync(path.join(".", resourcePath)) ? JSON.parse(fs.readFileSync(resourcePath, encoding)) : "";
+      stringResources[resource.locale] = resource.values;
+    });
+  } 
+  let resourcesDir = path.join(".", "stringResources");
+  if (fs.existsSync(resourcesDir)) {
+    let resourcesFolders = fs.readdirSync(resourcesDir);
+    resourcesFolders.forEach( folder => {
+      if (fs.statSync(path.join(resourcesDir, folder)).isDirectory()) {
+        let resourceFile = JSON.parse(fs.readFileSync(path.join(resourcesDir, folder, "resources.resjson"), encoding));
+        if (typeof stringResources[folder] !== "undefined") {
+          // resjson string rewrites exist keys 
+          Object.keys(resourceFile).forEach(key => {
+            stringResources[folder][key] = resourceFile[key];
+          });
+        }
+        else {
+          stringResources[folder] = resourceFile;
+        }
+      }
+    });
+  }
+  return stringResources;
+}
+
 PowerBICustomVisualsWebpackPlugin.prototype.apply = function(compiler) {
   const options = this.options;
   const encoding = "utf8";
@@ -51,26 +81,9 @@ PowerBICustomVisualsWebpackPlugin.prototype.apply = function(compiler) {
     });
 
     compiler.plugin("emit", (compilation, callback) => {
-    // generate pbiviz.json for dev server
-    var stringResources = {};
-    if (this.options.stringResources && this.options.stringResources.length) {
-      this.options.stringResources.forEach(resourcePath => {
-        let resource = fs.existsSync(path.join(".", resourcePath)) ? JSON.parse(fs.readFileSync(resourcePath, encoding)) : "";
+    var stringResources = this.parseLocalizationString(options);
 
-        stringResources[resource.locale] = resource.values;
-      });
-    } else {
-      let resourcesDir = path.join(".", "stringResources");
-      if (fs.existsSync(resourcesDir)) {
-        let resourcesFolders = fs.readdirSync(resourcesDir);
-        resourcesFolders.forEach( folder => {
-          let resourceFile = JSON.parse(fs.readFileSync(path.join(resourcesDir, folder, "resources.resjson"), encoding));
-          stringResources[folder] = resourceFile;
-        });
-      }
-    }
-
-    var capabilities = this.options.capabilities;
+    var capabilities = options.capabilities;
 
     let jsContent = "";
     let jsContentOrigin = "";
@@ -97,8 +110,8 @@ PowerBICustomVisualsWebpackPlugin.prototype.apply = function(compiler) {
     if (!cssContent) {
       // if css file wasn't specified, generate empty css file because PBI requres this file from dev server
       // try to get styles from package
-      if (this.options.cssStyles) {
-        let style = fs.readFileSync(this.options.cssStyles, {encoding: encoding});
+      if (options.cssStyles) {
+        let style = fs.readFileSync(options.cssStyles, {encoding: encoding});
         cssContent = style;
       }
     }
@@ -253,7 +266,11 @@ PowerBICustomVisualsWebpackPlugin.prototype.apply = function(compiler) {
           console.error(uglifyed.error.message);
         }
       }
-      
+      //we deliberately overwrite the dependencies property to make sure it will be undefined when no dependencies file was supplied
+      // distPbiviz.dependencies = dependencies;
+
+      //we deliberately overwrite the stringResources property to make sure it will be undefined when no stringResources file was supplied
+      // distPbiviz.stringResources = localization;
       visualConfigProd.content = {
         js: jsContentProd,
         css: cssContent,
