@@ -1,13 +1,13 @@
 # powerbi-visuals-webpack-plugin
 
-This plugin allows developing custom visuals by using webpack for assembly visual package.
+This plugin allows developing custom visuals by using webpack to build a visual package.
 
 Provides following functionality:
 
 * Create assets for developer server
 * Create *.pbiviz package.
 
-##How to use the plugin
+## How to use the plugin
 
 ### Plugin options
 
