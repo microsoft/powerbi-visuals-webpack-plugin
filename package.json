@@ -4,7 +4,6 @@
   "description": "PowerBI Custom Visuals webpack plugin",
   "main": "index.js",
   "scripts": {
-    "test": "test"
   },
   "keywords": [
     "custom",

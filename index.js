@@ -255,7 +255,7 @@ class PowerBICustomVisualsWebpackPlugin {
 
         let jsContentProd = "";
 
-        /// load external js
+        // load external js
         if (this.options.externalJS) {
           jsContentProd += PowerBICustomVisualsWebpackPlugin.appendExternalJS(this.options.externalJS);
         }
