@@ -1,0 +1,16 @@
+(function (visuals) {
+    var plugins;
+    (function (plugins) {
+        plugins.<%= pluginName %> = {
+            name: '<%= pluginName %>',
+            displayName: '<%= visualDisplayName %>',
+            class: '<%= visualClass %>',
+            version: '<%= visualVersion %>',
+            apiVersion: '<%= apiVersion %>',
+            create: function (options) { 
+                return new CustomVisual.default(options); 
+            },
+            custom: true
+        };
+    })(plugins = visuals.plugins || (visuals.plugins = {}));
+})(visuals = powerbi.visuals || (powerbi.visuals = {}));
