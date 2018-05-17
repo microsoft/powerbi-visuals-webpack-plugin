@@ -22,7 +22,8 @@ class PowerBICustomVisualsWebpackPlugin {
             visualClassName: "Visual",
             version: "1.0.0.0",
             description: "",
-            supportUrl: ""
+            supportUrl: "",
+            gitHubUrl: "",
         },
         author: "",
         apiVersion: "1.10.0",
@@ -131,8 +132,8 @@ class PowerBICustomVisualsWebpackPlugin {
           visualClassName: this.options.visual.visualClassName,
           version: this.options.visual.version,
           description: this.options.visual.description,
-          supportUrl: this.options.visual.supportUrl,
-          apiVersion: this.options.apiVersion
+          supportUrl: this.options.visual.supportUrl || "",
+          gitHubUrl: this.options.visual.gitHubUrl || ""
       },
       author: this.options.author,
       apiVersion: this.options.apiVersion,
@@ -199,8 +200,8 @@ class PowerBICustomVisualsWebpackPlugin {
   }
 
   async _getDependencies() {
-      let dependenciesFilePath = path.join(process.cwd(), this.options.dependencies);
-      await fs.access(dependenciesFilePath);
+    let dependenciesFilePath = path.join(process.cwd(), this.options.dependencies);
+    if (await fs.exists(dependenciesFilePath)) {
       let dependencies = await fs.readJson(dependenciesFilePath);
       let schema = await fs.readJson((path.join(process.cwd(),'.api', 'v' + this.options.apiVersion, 'schema.dependencies.json')));
       let validator = new Validator();
@@ -208,10 +209,11 @@ class PowerBICustomVisualsWebpackPlugin {
       let errors = this._populateErrors(validation.errors, `${this.options.dependencies}`, 'json');
       if (errors) {
         throw errors;
-    } else {
-        return dependencies;
+      } else {
+          return dependencies;
+      }
     }
-}
+  }
   
   async _emit(compilation) {
     const options = this.options;
@@ -324,7 +326,7 @@ class PowerBICustomVisualsWebpackPlugin {
 
       let jsContentProd = "";
 
-      /// load external js
+      // load external js
       if (this.options.externalJS) {
         jsContentProd += await this.appendExternalJS(this.options.externalJS);
       }
