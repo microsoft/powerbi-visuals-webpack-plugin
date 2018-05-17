@@ -6,7 +6,6 @@ let Validator = require('jsonschema').Validator;
 
 const base64Img = require('base64-img');
 const JSZip = require('jszip');
-const UglifyJS = require('uglify-es');
 const DEBUG = "";
 
 const encoding = "utf8";
@@ -140,7 +139,7 @@ class PowerBICustomVisualsWebpackPlugin {
       style: "style/visual.less",
       stringResources: stringResources,
       capabilities: capabilities,
-      dependencies: dependencies,
+      dependencies: dependencies || {},
       content: {
           js: jsContent,
           css: cssContent,
@@ -200,8 +199,8 @@ class PowerBICustomVisualsWebpackPlugin {
   }
 
   async _getDependencies() {
-    let dependenciesFilePath = path.join(process.cwd(), this.options.dependencies);
-    if (await fs.exists(dependenciesFilePath)) {
+    let dependenciesFilePath = this.options.dependencies && path.join(process.cwd(), this.options.dependencies);
+    if (dependenciesFilePath && await fs.exists(dependenciesFilePath)) {
       let dependencies = await fs.readJson(dependenciesFilePath);
       let schema = await fs.readJson((path.join(process.cwd(),'.api', 'v' + this.options.apiVersion, 'schema.dependencies.json')));
       let validator = new Validator();
@@ -339,20 +338,6 @@ class PowerBICustomVisualsWebpackPlugin {
       jsContentProd += jsContentOrigin;
       jsContentProd += `\n ${pluginTsProd}`;
       await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContentProd);
-      if (this.options.minifyJS) {
-        try {
-          let uglifyed =  UglifyJS.minify(jsContentProd);
-          if (!uglifyed.error) {
-            jsContentProd = uglifyed.code;
-          }
-          else {
-            console.error(uglifyed.error.message);
-          }
-        }
-        catch (ex) {
-          console.error(ex.message);
-        }
-      }
       
       visualConfigProd.content = {
         js: jsContentProd,
