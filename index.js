@@ -13,36 +13,39 @@ const encoding = "utf8";
 class PowerBICustomVisualsWebpackPlugin {
   constructor(options) {
     const name = "SampleVisual";
-      var defaultOptions = {
-          visual: {
-            name: name,
-            displayName: name,
-            guid: `${name}_${new Date().getTime()}_${Math.random().toString().substr(2)}`,
-            visualClassName: "Visual",
-            version: "1.0.0.0",
-            description: "",
-            supportUrl: "",
-            gitHubUrl: "",
-        },
-        author: "",
-        apiVersion: "1.10.0",
-        stringResourcesPath: {
-          "en-US": {
-          }
-        },
-        capabilities: {},
-        iconImage: !options.assets.icon ? 
-          base64Img.base64Sync(path.join(__dirname, "templates", "icon.png")) : 
-          base64Img.base64Sync(path.join(process.cwd(),options.assets.icon)),
-        devMode: true,
-        packageOutPath: path.join(process.cwd(), "dist"),
-        cssStyles: null,
-        generateResources: true,
-        generatePbiviz: true,
-        minifyJS: true
-      };
+    const apiVersion = "1.10.0";
+    var defaultOptions = {
+      visual: {
+        name: name,
+        displayName: name,
+        guid: `${name}_${new Date().getTime()}_${Math.random().toString().substr(2)}`,
+        visualClassName: "Visual",
+        version: "1.0.0.0",
+        description: "",
+        supportUrl: "",
+        gitHubUrl: "",
+      },
+      author: "",
+      apiVersion: apiVersion,
+      stringResourcesPath: {
+        "en-US": {
+        }
+      },
+      capabilities: {},
+      iconImage: !options.assets.icon ?
+        base64Img.base64Sync(path.join(__dirname, "templates", "icon.png")) :
+        base64Img.base64Sync(path.join(process.cwd(), options.assets.icon)),
+      devMode: true,
+      packageOutPath: path.join(process.cwd(), "dist"),
+      cssStyles: null,
+      generateResources: true,
+      generatePbiviz: true,
+      minifyJS: true,
+      schemaLocation: path.join(process.cwd(), '.api', 'v' + apiVersion)
+    };
 
-      this.options = Object.assign(defaultOptions, options);
+    this.options = Object.assign(defaultOptions, options);
+    this.options.schemaLocation = path.join(process.cwd(), '.api', 'v' + this.options.apiVersion);
   }
 
   async parseLocalizationString(options) {
@@ -198,19 +201,49 @@ class PowerBICustomVisualsWebpackPlugin {
     }
   }
 
-  async _getDependencies() {
-    let dependenciesFilePath = this.options.dependencies && path.join(process.cwd(), this.options.dependencies);
-    if (dependenciesFilePath && await fs.exists(dependenciesFilePath)) {
-      let dependencies = await fs.readJson(dependenciesFilePath);
-      let schema = await fs.readJson((path.join(process.cwd(),'.api', 'v' + this.options.apiVersion, 'schema.dependencies.json')));
-      let validator = new Validator();
-      let validation = validator.validate(dependencies, schema);
-      let errors = this._populateErrors(validation.errors, `${this.options.dependencies}`, 'json');
-      if (errors) {
-        throw errors;
-      } else {
-          return dependencies;
+  async _getCapabilities() {
+    let capabilities;
+    // read from file
+    if (typeof this.options.capabilities === "string") {
+      let capabilitiesFilePath = this.options.capabilities && path.join(process.cwd(), this.options.capabilities);
+      if (capabilitiesFilePath && await fs.exists(capabilitiesFilePath)) {
+        capabilities = await fs.readJson(capabilitiesFilePath);
       }
+    }
+    
+    // use passed or loaded object
+    capabilities = this.options.capabilities
+    const schema = await fs.readJson((path.join(this.options.schemaLocation, 'schema.capabilities.json')));
+    let validator = new Validator();
+    let validation = validator.validate(capabilities, schema);
+    let errors = this._populateErrors(validation.errors, `${this.options.capabilities}`, 'json');
+    if (errors) {
+      throw errors;
+    } else {
+      return capabilities;
+    }
+  }
+
+  async _getDependencies() {
+    let dependencies;
+    // read from file
+    if (typeof this.options.dependencies === "string") {
+      let dependenciesFilePath = this.options.dependencies && path.join(process.cwd(), this.options.dependencies);
+      if (dependenciesFilePath && await fs.exists(dependenciesFilePath)) {
+        dependencies = await fs.readJson(dependenciesFilePath);
+      }
+    }
+
+    // use passed or loaded object
+    dependencies = this.options.dependencies
+    let schema = await fs.readJson((path.join(this.options.schemaLocation, 'schema.dependencies.json')));
+    let validator = new Validator();
+    let validation = validator.validate(dependencies, schema);
+    let errors = this._populateErrors(validation.errors, `${this.options.dependencies}`, 'json');
+    if (errors) {
+      throw errors;
+    } else {
+      return dependencies;
     }
   }
   
@@ -220,7 +253,7 @@ class PowerBICustomVisualsWebpackPlugin {
     const pluginFileName = "visualPlugin.js";
     var stringResources = await this.parseLocalizationString(options);
 
-    var capabilities = options.capabilities;
+    var capabilities = await this._getCapabilities(options.capabilities);
     var rVisual = this.isRVisual(capabilities);
 
     if (rVisual) {
