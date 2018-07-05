@@ -175,7 +175,7 @@ class PowerBICustomVisualsWebpackPlugin {
             let tempFname = path.join(process.cwd(), matchListFileName[1]);
             let tempContent = '';
             try {
-                tempContent = await fs.readFile(tempFname).toString();
+                tempContent = (await fs.readFile(tempFname)).toString();
             }
             catch (err) {
                 ConsoleWriter.error('Can not access file: ' + tempFname);
@@ -212,7 +212,7 @@ class PowerBICustomVisualsWebpackPlugin {
     }
     
     // use passed or loaded object
-    capabilities = this.options.capabilities
+    capabilities = capabilities || this.options.capabilities
     const schema = await fs.readJson((path.join(this.options.schemaLocation, 'schema.capabilities.json')));
     let validator = new Validator();
     let validation = validator.validate(capabilities, schema);
@@ -235,7 +235,7 @@ class PowerBICustomVisualsWebpackPlugin {
     }
 
     // use passed or loaded object
-    dependencies = this.options.dependencies
+    dependencies = dependencies || this.options.dependencies
     let schema = await fs.readJson((path.join(this.options.schemaLocation, 'schema.dependencies.json')));
     let validator = new Validator();
     let validation = validator.validate(dependencies, schema);
