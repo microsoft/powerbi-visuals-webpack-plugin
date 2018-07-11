@@ -41,7 +41,11 @@ class PowerBICustomVisualsWebpackPlugin {
       generateResources: true,
       generatePbiviz: true,
       minifyJS: true,
-      schemaLocation: path.join(process.cwd(), '.api', 'v' + apiVersion)
+      schemaLocation: path.join(process.cwd(), '.api', 'v' + apiVersion),
+      capabilitiesSchema: null,
+      pbivizSchema: null,
+      stringResourcesSchema: null,
+      dependenciesSchema: null
     };
 
     this.options = Object.assign(defaultOptions, options);
@@ -213,7 +217,7 @@ class PowerBICustomVisualsWebpackPlugin {
     
     // use passed or loaded object
     capabilities = capabilities || this.options.capabilities
-    const schema = await fs.readJson((path.join(this.options.schemaLocation, 'schema.capabilities.json')));
+    const schema = this.options.capabilitiesSchema || await fs.readJson((path.join(this.options.schemaLocation, 'schema.capabilities.json')));
     let validator = new Validator();
     let validation = validator.validate(capabilities, schema);
     let errors = this._populateErrors(validation.errors, `${this.options.capabilities}`, 'json');
@@ -234,9 +238,12 @@ class PowerBICustomVisualsWebpackPlugin {
       }
     }
 
+    if (!dependencies) {
+      dependencies = {};
+    }
     // use passed or loaded object
     dependencies = dependencies || this.options.dependencies
-    let schema = await fs.readJson((path.join(this.options.schemaLocation, 'schema.dependencies.json')));
+    let schema = this.options.dependenciesSchema || await fs.readJson((path.join(this.options.schemaLocation, 'schema.dependencies.json')));
     let validator = new Validator();
     let validation = validator.validate(dependencies, schema);
     let errors = this._populateErrors(validation.errors, `${this.options.dependencies}`, 'json');
@@ -397,7 +404,15 @@ class PowerBICustomVisualsWebpackPlugin {
 
   apply(compiler) {
     compiler.plugin("emit", (compilation, callback) => {
-      this._emit(compilation).then(() => callback()).catch( ex => console.log(ex.message))
+      this._emit(compilation)
+        .then(() => callback())
+        .catch( ex => {
+          if (ex.length) {
+            ex.forEach(ex => console.log(ex.message));
+            return;
+          }
+          console.log(ex.message)
+        });
     });
   }
 }
