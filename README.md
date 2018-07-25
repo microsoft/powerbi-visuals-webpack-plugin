@@ -1,4 +1,5 @@
 # powerbi-visuals-webpack-plugin
+[![npm version](https://img.shields.io/npm/v/powerbi-visuals-webpack-plugin.svg)](https://www.npmjs.com/package/powerbi-visuals-webpack-plugin) [![npm](https://img.shields.io/npm/dm/powerbi-visuals-webpack-plugin.svg)](https://www.npmjs.com/package/powerbi-visuals-webpack-plugin)
 
 This plugin allows developing custom visuals by using webpack to build a visual package.
 
