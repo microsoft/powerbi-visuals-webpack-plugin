@@ -365,11 +365,6 @@ class PowerBICustomVisualsWebpackPlugin {
 
       let jsContentProd = "";
 
-      // load external js
-      if (this.options.externalJS) {
-        jsContentProd += await this.appendExternalJS(this.options.externalJS);
-      }
-
       let pluginOptionsProd = _.cloneDeep(pluginOptions);
       pluginOptionsProd.pluginName = `${this.options.visual.guid}`;
       let pluginTsProd = _.template(pluginTemplate)(pluginOptionsProd);
