@@ -7,7 +7,7 @@ let Validator = require('jsonschema').Validator;
 
 const base64Img = require('base64-img');
 const JSZip = require('jszip');
-const DEBUG = "_";
+const DEBUG = "_DEBUG";
 
 const encoding = "utf8";
 
@@ -381,6 +381,7 @@ class PowerBICustomVisualsWebpackPlugin {
 
     let dependencies = await this._getDependencies();
     let visualConfig = this.getVisualConfig(stringResources, capabilities, dependencies, jsContent, cssContent);
+    visualConfig.visual.guid = `${this.options.visual.guid}${ options.devMode ? DEBUG : ''}`;
     let pbivizJSONData = JSON.stringify(visualConfig);
 
     compilation.assets["pbiviz.json"] = {
