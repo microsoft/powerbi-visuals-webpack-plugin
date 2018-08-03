@@ -7,7 +7,7 @@ let Validator = require('jsonschema').Validator;
 
 const base64Img = require('base64-img');
 const JSZip = require('jszip');
-const DEBUG = "";
+const DEBUG = "_";
 
 const encoding = "utf8";
 
@@ -140,7 +140,7 @@ class PowerBICustomVisualsWebpackPlugin {
       visual: {
           name: this.options.visual.name,
           displayName: this.options.visual.displayName,
-          guid: `${this.options.visual.guid}${ this.options.devMode ? DEBUG : ''}`,
+          guid: `${this.options.visual.guid}`,
           visualClassName: this.options.visual.visualClassName,
           version: this.options.visual.version,
           description: this.options.visual.description,
@@ -205,17 +205,17 @@ class PowerBICustomVisualsWebpackPlugin {
 
   _error() {
     let tag = chalk.bgRed(' error ');
-    console.error.apply(this, PowerBICustomVisualsWebpackPlugin._prependLogTag(tag, arguments));
+    console.error.apply(this, this._prependLogTag(tag, arguments));
   }
 
   _warn(/* arguments */) {
     let tag = chalk.bgYellow.black(' warn  ');
-    console.warn.apply(this, PowerBICustomVisualsWebpackPlugin._prependLogTag(tag, arguments));
+    console.warn.apply(this, this._prependLogTag(tag, arguments));
   }
 
   _info() {
     let tag = chalk.bgCyan(' info  ');
-    console.info.apply(this, PowerBICustomVisualsWebpackPlugin._prependLogTag(tag, arguments));
+    console.info.apply(this, this._prependLogTag(tag, arguments));
   }
 
   _populateErrors(errors, fileName, type) {
@@ -281,14 +281,12 @@ class PowerBICustomVisualsWebpackPlugin {
 
   checkVisualInfo(visualConfig) {
     if (visualConfig && visualConfig.author) {
-      if (!visualConfig.config.author.name) {
+      if (!visualConfig.author.name) {
         this._warn("Author name is not specified");
       }
       if (!visualConfig.author.email) {
         this._warn("Author e-mail is not specified");
       }
-    } else {
-      this._warn("Author name and email aren't specified");
     }
     if (visualConfig && visualConfig.visual) {
       if (!visualConfig.visual.description) {
@@ -297,15 +295,12 @@ class PowerBICustomVisualsWebpackPlugin {
       if (!visualConfig.visual.supportUrl) {
         this._warn("supportUrl is not specified");
       }
-    } else {
-      this._warn("Visual description and supportUrl aren't specified");
     }
   }
   
   async _emit(compilation) {
     const options = this.options;
     const encoding = "utf8";
-    const pluginFileName = "visualPlugin.js";
     var stringResources = await this.parseLocalizationString(options);
 
     var capabilities = await this._getCapabilities(options.capabilities);
@@ -324,12 +319,8 @@ class PowerBICustomVisualsWebpackPlugin {
     let jsPath = "";
 
     let externalJSOrigin = "";
-    let externalJSOriginPath = "";
 
     let cssContent = "";
-    let cssPath = "visual.css";
-    
-    let visualFileName = "";
     for(let asset in compilation.assets) {
       if (asset.split('.').pop() === "js") {
         jsPath = asset;
