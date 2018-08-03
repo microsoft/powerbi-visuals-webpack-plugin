@@ -347,6 +347,11 @@ class PowerBICustomVisualsWebpackPlugin {
       if (options.cssStyles) {
         let style = await fs.readFile(options.cssStyles, {encoding: encoding});
         cssContent = style;
+      } else {
+        compilation.assets["visual.css"] = {
+          source: () => "",
+          size: () => 0
+        };
       }
     }
 
