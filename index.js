@@ -1,5 +1,6 @@
 'use strict';
 const path = require('path');
+const os = require('os');
 const fs = require('fs-extra');
 const _ = require('lodash');
 let Validator = require('jsonschema').Validator;
@@ -9,6 +10,11 @@ const JSZip = require('jszip');
 const DEBUG = "";
 
 const encoding = "utf8";
+
+let chalk = require('chalk');
+if (os.platform() === 'darwin') {
+  chalk = chalk.bold;
+}
 
 class PowerBICustomVisualsWebpackPlugin {
   constructor(options) {
@@ -182,7 +188,7 @@ class PowerBICustomVisualsWebpackPlugin {
                 tempContent = (await fs.readFile(tempFname)).toString();
             }
             catch (err) {
-                ConsoleWriter.error('Can not access file: ' + tempFname);
+                this._error('Can not access file: ' + tempFname);
                 throw (err);
             }
             scriptContent = scriptContent.replace(Pattern4FileName, tempContent);
@@ -191,6 +197,25 @@ class PowerBICustomVisualsWebpackPlugin {
     } catch (err) {
         throw err;
     }
+  }
+
+  _prependLogTag(tag, args) {
+    return [tag].concat(Array.from(args));
+  }
+
+  _error() {
+    let tag = chalk.bgRed(' error ');
+    console.error.apply(this, PowerBICustomVisualsWebpackPlugin._prependLogTag(tag, arguments));
+  }
+
+  _warn(/* arguments */) {
+    let tag = chalk.bgYellow.black(' warn  ');
+    console.warn.apply(this, PowerBICustomVisualsWebpackPlugin._prependLogTag(tag, arguments));
+  }
+
+  _info() {
+    let tag = chalk.bgCyan(' info  ');
+    console.info.apply(this, PowerBICustomVisualsWebpackPlugin._prependLogTag(tag, arguments));
   }
 
   _populateErrors(errors, fileName, type) {
@@ -251,6 +276,29 @@ class PowerBICustomVisualsWebpackPlugin {
       throw errors;
     } else {
       return dependencies;
+    }
+  }
+
+  checkVisualInfo(visualConfig) {
+    if (visualConfig && visualConfig.author) {
+      if (!visualConfig.config.author.name) {
+        this._warn("Author name is not specified");
+      }
+      if (!visualConfig.author.email) {
+        this._warn("Author e-mail is not specified");
+      }
+    } else {
+      this._warn("Author name and email aren't specified");
+    }
+    if (visualConfig && visualConfig.visual) {
+      if (!visualConfig.visual.description) {
+        this._warn("The visual description is not specified");
+      }
+      if (!visualConfig.visual.supportUrl) {
+        this._warn("supportUrl is not specified");
+      }
+    } else {
+      this._warn("Visual description and supportUrl aren't specified");
     }
   }
   
@@ -348,6 +396,7 @@ class PowerBICustomVisualsWebpackPlugin {
     };
 
     if (!this.options.devMode) {
+      this.checkVisualInfo(visualConfig);
       let dropPath = this.options.packageOutPath
       if(!(await fs.exists(dropPath))) {
         await fs.mkdir(dropPath);
