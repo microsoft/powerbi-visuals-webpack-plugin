@@ -3,7 +3,6 @@
   "version": "1.0.2",
   "description": "PowerBI Custom Visuals webpack plugin",
   "main": "index.js",
-  "scripts": {},
   "keywords": [
     "custom",
     "visuals",

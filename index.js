@@ -280,21 +280,30 @@ class PowerBICustomVisualsWebpackPlugin {
   }
 
   checkVisualInfo(visualConfig) {
+    let failed = false;
     if (visualConfig && visualConfig.author) {
       if (!visualConfig.author.name) {
         this._warn("Author name is not specified");
+        failed = true;
       }
       if (!visualConfig.author.email) {
         this._warn("Author e-mail is not specified");
+        failed = true;
       }
     }
     if (visualConfig && visualConfig.visual) {
       if (!visualConfig.visual.description) {
         this._warn("The visual description is not specified");
+        failed = true;
       }
       if (!visualConfig.visual.supportUrl) {
         this._warn("supportUrl is not specified");
+        failed = true;
       }
+    }
+    if (failed) {
+      throw new Error("Metadata is not specified");
+      failed = true;
     }
   }
   
@@ -446,7 +455,7 @@ class PowerBICustomVisualsWebpackPlugin {
             ex.forEach(ex => console.log(ex.message));
             return;
           }
-          console.log(ex.message)
+          this._error(ex.message)
         });
     });
   }
