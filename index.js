@@ -1,14 +1,20 @@
 'use strict';
 const path = require('path');
+const os = require('os');
 const fs = require('fs-extra');
 const _ = require('lodash');
 let Validator = require('jsonschema').Validator;
 
 const base64Img = require('base64-img');
 const JSZip = require('jszip');
-const DEBUG = "";
+const DEBUG = "_";
 
 const encoding = "utf8";
+
+let chalk = require('chalk');
+if (os.platform() === 'darwin') {
+  chalk = chalk.bold;
+}
 
 class PowerBICustomVisualsWebpackPlugin {
   constructor(options) {
@@ -134,7 +140,7 @@ class PowerBICustomVisualsWebpackPlugin {
       visual: {
           name: this.options.visual.name,
           displayName: this.options.visual.displayName,
-          guid: `${this.options.visual.guid}${ this.options.devMode ? DEBUG : ''}`,
+          guid: `${this.options.visual.guid}`,
           visualClassName: this.options.visual.visualClassName,
           version: this.options.visual.version,
           description: this.options.visual.description,
@@ -182,7 +188,7 @@ class PowerBICustomVisualsWebpackPlugin {
                 tempContent = (await fs.readFile(tempFname)).toString();
             }
             catch (err) {
-                ConsoleWriter.error('Can not access file: ' + tempFname);
+                this._error('Can not access file: ' + tempFname);
                 throw (err);
             }
             scriptContent = scriptContent.replace(Pattern4FileName, tempContent);
@@ -191,6 +197,25 @@ class PowerBICustomVisualsWebpackPlugin {
     } catch (err) {
         throw err;
     }
+  }
+
+  _prependLogTag(tag, args) {
+    return [tag].concat(Array.from(args));
+  }
+
+  _error() {
+    let tag = chalk.bgRed(' error ');
+    console.error.apply(this, this._prependLogTag(tag, arguments));
+  }
+
+  _warn(/* arguments */) {
+    let tag = chalk.bgYellow.black(' warn  ');
+    console.warn.apply(this, this._prependLogTag(tag, arguments));
+  }
+
+  _info() {
+    let tag = chalk.bgCyan(' info  ');
+    console.info.apply(this, this._prependLogTag(tag, arguments));
   }
 
   _populateErrors(errors, fileName, type) {
@@ -253,11 +278,38 @@ class PowerBICustomVisualsWebpackPlugin {
       return dependencies;
     }
   }
+
+  checkVisualInfo(visualConfig) {
+    let failed = false;
+    if (visualConfig && visualConfig.author) {
+      if (!visualConfig.author.name) {
+        this._error("Author name is not specified");
+        failed = true;
+      }
+      if (!visualConfig.author.email) {
+        this._error("Author e-mail is not specified");
+        failed = true;
+      }
+    }
+    if (visualConfig && visualConfig.visual) {
+      if (!visualConfig.visual.description) {
+        this._error("The visual description is not specified");
+        failed = true;
+      }
+      if (!visualConfig.visual.supportUrl) {
+        this._error("supportUrl is not specified");
+        failed = true;
+      }
+    }
+    if (failed) {
+      throw new Error("Metadata is not specified");
+      failed = true;
+    }
+  }
   
   async _emit(compilation) {
     const options = this.options;
     const encoding = "utf8";
-    const pluginFileName = "visualPlugin.js";
     var stringResources = await this.parseLocalizationString(options);
 
     var capabilities = await this._getCapabilities(options.capabilities);
@@ -276,12 +328,8 @@ class PowerBICustomVisualsWebpackPlugin {
     let jsPath = "";
 
     let externalJSOrigin = "";
-    let externalJSOriginPath = "";
 
     let cssContent = "";
-    let cssPath = "visual.css";
-    
-    let visualFileName = "";
     for(let asset in compilation.assets) {
       if (asset.split('.').pop() === "js") {
         jsPath = asset;
@@ -348,6 +396,7 @@ class PowerBICustomVisualsWebpackPlugin {
     };
 
     if (!this.options.devMode) {
+      this.checkVisualInfo(visualConfig);
       let dropPath = this.options.packageOutPath
       if(!(await fs.exists(dropPath))) {
         await fs.mkdir(dropPath);
@@ -406,7 +455,7 @@ class PowerBICustomVisualsWebpackPlugin {
             ex.forEach(ex => console.log(ex.message));
             return;
           }
-          console.log(ex.message)
+          this._error(ex.message)
         });
     });
   }
