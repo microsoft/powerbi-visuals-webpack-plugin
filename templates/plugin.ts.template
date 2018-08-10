@@ -9,24 +9,24 @@ var visuals;
             version: '<%= visualVersion %>',
             apiVersion: '<%= apiVersion %>',
             create: function (options) {
-                if (CustomVisual &&
-                    CustomVisual.default &&
-                    CustomVisual.default.extensibility &&
-                    CustomVisual.default.extensibility.visual &&
-                    CustomVisual.default.extensibility.visual.<%= visualClass %>) {
+                if (<%= customVisualID %> &&
+                    <%= customVisualID %>.default &&
+                    <%= customVisualID %>.default.extensibility &&
+                    <%= customVisualID %>.default.extensibility.visual &&
+                    <%= customVisualID %>.default.extensibility.visual.<%= visualClass %>) {
                     // for support visuals inside 
-                    return new CustomVisual.default.extensibility.visual.<%= visualClass %>(options);
+                    return new <%= customVisualID %>.default.extensibility.visual.<%= visualClass %>(options);
                 }
-                if (CustomVisual &&
-                    CustomVisual.powerbi &&
-                    CustomVisual.powerbi.extensibility &&
-                    CustomVisual.powerbi.extensibility.visual &&
-                    CustomVisual.powerbi.extensibility.visual.<%= visualClass %>) {
+                if (<%= customVisualID %> &&
+                    <%= customVisualID %>.powerbi &&
+                    <%= customVisualID %>.powerbi.extensibility &&
+                    <%= customVisualID %>.powerbi.extensibility.visual &&
+                    <%= customVisualID %>.powerbi.extensibility.visual.<%= visualClass %>) {
                     // for support visuals inside 
-                    return new CustomVisual.powerbi.extensibility.visual.<%= visualClass %>(options);
+                    return new <%= customVisualID %>.powerbi.extensibility.visual.<%= visualClass %>(options);
                 }
-                if (CustomVisual.default) {
-                    return new CustomVisual.default(options);
+                if (<%= customVisualID %>.default) {
+                    return new <%= customVisualID %>.default(options);
                 }
 
                 console.error('Visual instance not found');
