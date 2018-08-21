@@ -1,37 +1,22 @@
-var visuals;
-(function (visuals) {
-    var plugins;
-    (function (plugins) {
-        plugins.<%= pluginName %> = {
-            name: '<%= pluginName %>',
-            displayName: '<%= visualDisplayName %>',
-            class: '<%= visualClass %>',
-            version: '<%= visualVersion %>',
-            apiVersion: '<%= apiVersion %>',
-            create: function (options) {
-                if (<%= customVisualID %> &&
-                    <%= customVisualID %>.default &&
-                    <%= customVisualID %>.default.extensibility &&
-                    <%= customVisualID %>.default.extensibility.visual &&
-                    <%= customVisualID %>.default.extensibility.visual.<%= visualClass %>) {
-                    // for support visuals inside 
-                    return new <%= customVisualID %>.default.extensibility.visual.<%= visualClass %>(options);
-                }
-                if (<%= customVisualID %> &&
-                    <%= customVisualID %>.powerbi &&
-                    <%= customVisualID %>.powerbi.extensibility &&
-                    <%= customVisualID %>.powerbi.extensibility.visual &&
-                    <%= customVisualID %>.powerbi.extensibility.visual.<%= visualClass %>) {
-                    // for support visuals inside 
-                    return new <%= customVisualID %>.powerbi.extensibility.visual.<%= visualClass %>(options);
-                }
-                if (<%= customVisualID %>.default) {
-                    return new <%= customVisualID %>.default(options);
-                }
+import { <%= visualClass %> } from "<%= visualSourceLocation %>";
+declare var powerbi;
+powerbi.visuals = powerbi.visuals || {};
+powerbi.visuals.plugins = {
+    <%= pluginName %>: {
+        name: '<%= pluginName %>',
+        displayName: '<%= visualDisplayName %>',
+        class: '<%= visualClass %>',
+        version: '<%= visualVersion %>',
+        apiVersion: '<%= apiVersion %>',
+        create: (options) => {
+            if (<%= visualClass %>) {
+                return new <%= visualClass %>(options);
+            }
 
-                console.error('Visual instance not found');
-            },
-            custom: true
-        };
-    })(plugins = visuals.plugins || (visuals.plugins = {}));
-})(visuals = powerbi.visuals || (powerbi.visuals = {}));
+            console.error('Visual instance not found');
+        },
+        custom: true
+    }
+};
+
+export default powerbi;

@@ -21,7 +21,6 @@ class PowerBICustomVisualsWebpackPlugin {
     const name = "SampleVisual";
     const apiVersion = "1.10.0";
     var defaultOptions = {
-      customVisualID: "CustomVisual",
       visual: {
         name: name,
         displayName: name,
@@ -52,7 +51,9 @@ class PowerBICustomVisualsWebpackPlugin {
       capabilitiesSchema: null,
       pbivizSchema: null,
       stringResourcesSchema: null,
-      dependenciesSchema: null
+      dependenciesSchema: null,
+      modules: true,
+      visualSourceLocation: ""
     };
 
     this.options = Object.assign(defaultOptions, options);
@@ -72,7 +73,7 @@ class PowerBICustomVisualsWebpackPlugin {
     let resourcesDir = path.join(".", "stringResources");
     if (await fs.exists(resourcesDir)) {
       let resourcesFolders = await fs.readdir(resourcesDir);
-      resourcesFolders.forEach(async folder => {
+      resourcesFolders.forEach( async folder => {
         if ((await fs.stat(path.join(resourcesDir, folder))).isDirectory()) {
           let resourceFile = JSON.parse(await fs.readFile(path.join(resourcesDir, folder, "resources.resjson"), encoding));
           if (typeof stringResources[folder] !== "undefined") {
@@ -93,7 +94,9 @@ class PowerBICustomVisualsWebpackPlugin {
   async appendExternalJS(externalJS) {
     let fileContent = "";
     for (let file in externalJS) {
-      fileContent += (await fs.readFile(externalJS[file], encoding));
+      if (await fs.ensureFile(externalJS[file])) {
+        fileContent += (await fs.readFile(externalJS[file], encoding));
+      }
     }
 
     return fileContent;
@@ -112,41 +115,29 @@ class PowerBICustomVisualsWebpackPlugin {
 
   async generatePackageJson(visualConfigProd) {
     let templateOptions = {
-      visualData: visualConfigProd.visual || {},
-      authorData: visualConfigProd.author || {
-        name: "",
-        email: ""
-      },
-      guid: visualConfigProd.visual.guid
+        visualData: visualConfigProd.visual || {},
+        authorData: visualConfigProd.author || {
+          name: "",
+          email: ""
+        },
+        guid: visualConfigProd.visual.guid
     };
     let packageTemplate = await fs.readFile(path.join(__dirname, "templates", "package.json.template"));
     delete templateOptions.visualData.apiVersion;
     return _.template(packageTemplate)(templateOptions);
   }
 
-  applyPlugin(compilation, pluginOptions, pluginTemplate) {
-    const pluginFileName = "visualPlugin.js";
-    let pluginTs = _.template(pluginTemplate)(pluginOptions);
-
-    compilation.assets[pluginFileName] = {
-      source: () => pluginTs,
-      size: () => pluginTs.length
-    };
-
-    return pluginTs;
-  }
-
   getVisualConfig(stringResources, capabilities, dependencies, jsContent, cssContent) {
     return {
       visual: {
-        name: this.options.visual.name,
-        displayName: this.options.visual.displayName,
-        guid: `${this.options.visual.guid}`,
-        visualClassName: this.options.visual.visualClassName,
-        version: this.options.visual.version,
-        description: this.options.visual.description,
-        supportUrl: this.options.visual.supportUrl || "",
-        gitHubUrl: this.options.visual.gitHubUrl || ""
+          name: this.options.visual.name,
+          displayName: this.options.visual.displayName,
+          guid: `${this.options.visual.guid}`,
+          visualClassName: this.options.visual.visualClassName,
+          version: this.options.visual.version,
+          description: this.options.visual.description,
+          supportUrl: this.options.visual.supportUrl || "",
+          gitHubUrl: this.options.visual.gitHubUrl || ""
       },
       author: this.options.author,
       apiVersion: this.options.apiVersion,
@@ -155,19 +146,20 @@ class PowerBICustomVisualsWebpackPlugin {
       capabilities: capabilities,
       dependencies: dependencies || {},
       content: {
-        js: jsContent,
-        css: cssContent,
-        iconBase64: this.options.iconImage
-      }
+          js: jsContent,
+          css: cssContent,
+          iconBase64: this.options.iconImage
+      },
+      visualEntryPoint: ""
     };
 
   }
 
   isRVisual(capabilities) {
     return capabilities &&
-      capabilities.dataViewMappings &&
-      capabilities.dataViewMappings.length === 1 &&
-      typeof capabilities.dataViewMappings[0].scriptResult !== 'undefined';
+            capabilities.dataViewMappings &&
+            capabilities.dataViewMappings.length === 1 &&
+            typeof capabilities.dataViewMappings[0].scriptResult !== 'undefined';
   }
 
   async _getRScriptsContents(scriptFileName) {
@@ -176,27 +168,27 @@ class PowerBICustomVisualsWebpackPlugin {
     const MaxSourceReplacements = 100;
 
     try {
-      let scriptContent = (await fs.readFile(scriptFileName)).toString();
-      // search and replace 'source(fname)' commands
-      for (let i = 0; i < MaxSourceReplacements; i++) {
-        let matchListFileName = Pattern4FileName.exec(scriptContent);
-        if (matchListFileName === null || matchListFileName.length < 2) {
-          break;
+        let scriptContent = (await fs.readFile(scriptFileName)).toString();
+        // search and replace 'source(fname)' commands
+        for (let i = 0; i < MaxSourceReplacements; i++) {
+            let matchListFileName = Pattern4FileName.exec(scriptContent);
+            if (matchListFileName === null || matchListFileName.length < 2) {
+                break;
+            }
+            let tempFname = path.join(process.cwd(), matchListFileName[1]);
+            let tempContent = '';
+            try {
+                tempContent = (await fs.readFile(tempFname)).toString();
+            }
+            catch (err) {
+                this._error('Can not access file: ' + tempFname);
+                throw (err);
+            }
+            scriptContent = scriptContent.replace(Pattern4FileName, tempContent);
         }
-        let tempFname = path.join(process.cwd(), matchListFileName[1]);
-        let tempContent = '';
-        try {
-          tempContent = (await fs.readFile(tempFname)).toString();
-        }
-        catch (err) {
-          this._error('Can not access file: ' + tempFname);
-          throw (err);
-        }
-        scriptContent = scriptContent.replace(Pattern4FileName, tempContent);
-      }
-      return scriptContent;
+        return scriptContent;
     } catch (err) {
-      throw err;
+        throw err;
     }
   }
 
@@ -221,13 +213,13 @@ class PowerBICustomVisualsWebpackPlugin {
 
   _populateErrors(errors, fileName, type) {
     if (errors && errors.length > 0) {
-      return errors.map(e => {
-        return {
-          filename: fileName,
-          message: e.stack || 'Unknown error',
-          type: type
-        };
-      });
+        return errors.map(e => {
+            return {
+                filename: fileName,
+                message: e.stack || 'Unknown error',
+                type: type
+            };
+        });
     }
   }
 
@@ -331,7 +323,7 @@ class PowerBICustomVisualsWebpackPlugin {
     let externalJSOrigin = "";
 
     let cssContent = "";
-    for (let asset in compilation.assets) {
+    for(let asset in compilation.assets) {
       if (asset.split('.').pop() === "js") {
         jsPath = asset;
         jsContentOrigin = compilation.assets[asset].source();
@@ -346,7 +338,7 @@ class PowerBICustomVisualsWebpackPlugin {
       // if css file wasn't specified, generate empty css file because PBI requres this file from dev server
       // try to get styles from package
       if (options.cssStyles) {
-        let style = await fs.readFile(options.cssStyles, { encoding: encoding });
+        let style = await fs.readFile(options.cssStyles, {encoding: encoding});
         cssContent = style;
       } else {
         compilation.assets["visual.css"] = {
@@ -356,30 +348,14 @@ class PowerBICustomVisualsWebpackPlugin {
       }
     }
 
-    // generate visual plugin for dev server
-    let pluginOptions = {
-      customVisualID: this.options.customVisualID,
-      pluginName: `${this.options.visual.guid}${options.devMode ? DEBUG : ''}`,
-      visualGuid: this.options.visual.guid,
-      visualClass: this.options.visual.visualClassName,
-      visualDisplayName: this.options.visual.displayName,
-      visualVersion: this.options.visual.version,
-      apiVersion: this.options.apiVersion
-    };
-
-    let pluginTemplate = await fs.readFile(path.join(__dirname, "templates", "plugin.ts.template"));
-    let pluginTs = this.applyPlugin(compilation, pluginOptions, pluginTemplate);
-
     // append externalJS files content to visual code;
     if (this.options.externalJS) {
       externalJSOrigin += await this.appendExternalJS(this.options.externalJS);
+      externalJSOrigin += "\nvar globalPowerbi = powerbi;\n";
     }
-
-    externalJSOrigin += "\nvar globalPowerbi = powerbi;\n";
 
     jsContent += externalJSOrigin;
     jsContent += jsContentOrigin;
-    jsContent += `\n ${pluginTs}`;
 
     compilation.assets[jsPath] = {
       source: () => jsContent,
@@ -388,7 +364,7 @@ class PowerBICustomVisualsWebpackPlugin {
 
     let dependencies = await this._getDependencies();
     let visualConfig = this.getVisualConfig(stringResources, capabilities, dependencies, jsContent, cssContent);
-    visualConfig.visual.guid = `${this.options.visual.guid}${options.devMode ? DEBUG : ''}`;
+    visualConfig.visual.guid = `${this.options.visual.guid}${ options.devMode ? DEBUG : ''}`;
     let pbivizJSONData = JSON.stringify(visualConfig);
 
     compilation.assets["pbiviz.json"] = {
@@ -397,7 +373,7 @@ class PowerBICustomVisualsWebpackPlugin {
     };
 
     // update status file for debug server
-    const status = `${new Date().getTime()}\n${this.options.visual.guid}${options.devMode ? DEBUG : ''}`;
+    const status = `${new Date().getTime()}\n${this.options.visual.guid}${ options.devMode ? DEBUG : ''}`;
     compilation.assets["status"] = {
       source: () => status,
       size: () => status.length
@@ -406,29 +382,22 @@ class PowerBICustomVisualsWebpackPlugin {
     if (!this.options.devMode) {
       this.checkVisualInfo(visualConfig);
       let dropPath = this.options.packageOutPath
-      if (!(await fs.exists(dropPath))) {
+      if(!(await fs.exists(dropPath))) {
         await fs.mkdir(dropPath);
       }
       let resourcePath = path.join(dropPath, 'resources');
-      if (!(await fs.exists(resourcePath))) {
+      if(!(await fs.exists(resourcePath))) {
         await fs.mkdir(resourcePath);
       }
 
-      let visualConfigProd = _.cloneDeep(visualConfig);
+      let visualConfigProd = _.cloneDeep(visualConfig);  
       visualConfigProd.visual.guid = `${visualConfig.visual.guid}`; // prod version of visual should not contaings _DEBUG postfix
       visualConfigProd.visual.gitHubUrl = visualConfigProd.visual.gitHubUrl || "";
-      let packageJSONContent = await this.generatePackageJson(visualConfigProd);
+      let packageJSONContent  = await this.generatePackageJson(visualConfigProd);
       await fs.writeFile(path.join(dropPath, 'package.json'), packageJSONContent);
 
       let jsContentProd = "";
 
-      let pluginOptionsProd = _.cloneDeep(pluginOptions);
-      pluginOptionsProd.pluginName = `${this.options.visual.guid}`;
-      let pluginTsProd = _.template(pluginTemplate)(pluginOptionsProd);
-
-      jsContentProd += externalJSOrigin;
-      jsContentProd += jsContentOrigin;
-      jsContentProd += `\n ${pluginTsProd}`;
       await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContentProd);
 
       visualConfigProd.content = {
@@ -458,7 +427,7 @@ class PowerBICustomVisualsWebpackPlugin {
     compiler.plugin("emit", (compilation, callback) => {
       this._emit(compilation)
         .then(() => callback())
-        .catch(ex => {
+        .catch( ex => {
           if (ex.length) {
             ex.forEach(ex => console.log(ex.message));
             return;
@@ -466,6 +435,52 @@ class PowerBICustomVisualsWebpackPlugin {
           this._error(ex.message)
         });
     });
+
+    compiler.plugin("beforeRun", (compilationParams) => {
+      this._beforeCompile(compilationParams)
+        .catch( ex => {
+          if (ex.length) {
+            ex.forEach(ex => console.log(ex.message));
+            return;
+          }
+          this._error(ex.message)
+        });
+    });
+
+    compiler.plugin("watchRun", (compilation) => {
+      this._beforeCompile(compilation)
+        .catch( ex => {
+          if (ex.length) {
+            ex.forEach(ex => console.log(ex.message));
+            return;
+          }
+          this._error(ex.message)
+        });
+    });
+  }
+
+  async _beforeCompile(compilation) {
+    if (!this.options.modules) {
+      return;
+    }
+    // TODO generate visualPlugin.ts
+    let pluginOptions = {
+      pluginName: `${this.options.visual.guid}${ this.options.devMode ? DEBUG : ''}`,
+      visualGuid: this.options.visual.guid,
+      visualClass: this.options.visual.visualClassName,
+      visualDisplayName: this.options.visual.displayName,
+      visualVersion: this.options.visual.version,
+      apiVersion: this.options.apiVersion,
+      visualSourceLocation: this.options.visualSourceLocation
+    };
+
+    let pluginTemplate = await fs.readFile(path.join(__dirname, "templates", "plugin.ts.template"));
+    const pluginFileName = "visualPlugin.ts";
+    let pluginLocation = "." + path.sep + path.join(".tmp", "precompile", pluginFileName);
+    let pluginTs = _.template(pluginTemplate)(pluginOptions);
+
+    fs.writeFileSync(pluginLocation, pluginTs);
+    return pluginTs;
   }
 }
 
