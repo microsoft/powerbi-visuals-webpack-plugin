@@ -394,14 +394,12 @@ class PowerBICustomVisualsWebpackPlugin {
       visualConfigProd.visual.guid = `${visualConfig.visual.guid}`; // prod version of visual should not contaings _DEBUG postfix
       visualConfigProd.visual.gitHubUrl = visualConfigProd.visual.gitHubUrl || "";
       let packageJSONContent  = await this.generatePackageJson(visualConfigProd);
+      
       await fs.writeFile(path.join(dropPath, 'package.json'), packageJSONContent);
-
-      let jsContentProd = "";
-
-      await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContentProd);
+      await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContentOrigin);
 
       visualConfigProd.content = {
-        js: jsContentProd,
+        js: jsContentOrigin,
         css: cssContent,
         iconBase64: this.options.iconImage
       }
@@ -411,7 +409,7 @@ class PowerBICustomVisualsWebpackPlugin {
       };
 
       await fs.writeFile(path.join(resourcePath, `${visualConfigProd.visual.guid}.pbiviz.json`), JSON.stringify(visualConfigProd));
-      await fs.writeFile(path.join(resourcePath, 'visual.prod.js'), jsContentProd);
+      await fs.writeFile(path.join(resourcePath, 'visual.prod.js'), jsContentOrigin);
       await fs.writeFile(path.join(resourcePath, 'visual.prod.css'), cssContent);
 
       if (this.options.generatePbiviz) {
