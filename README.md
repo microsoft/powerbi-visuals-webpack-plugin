@@ -121,7 +121,7 @@ module.exports = {
             stringResources: {
                 "en-US": {}
             },
-			visualSourceLocation: "../../src/index.ts" // path to visual class file
+            visualSourceLocation: "../../src/index.ts" // path to visual class file
         }),
         // visual plugin regenerates with the visual source, but it does not require relaunching dev server
         new WatchIgnorePlugin([
