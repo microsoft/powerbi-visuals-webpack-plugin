@@ -71,7 +71,7 @@ const capabilitiesPath = "./capabilities.json";
 const capabilitiesFile = require(path.join(__dirname, capabilitiesPath));
 
 module.exports = {
-    entry: './src/external.ts', // path to visual class file
+    entry: "./.tmp/precompile/visualPlugin.ts",
     devtool: 'source-map',
     mode: "development",
     module: {
@@ -115,12 +115,13 @@ module.exports = {
         // custom visuals plugin instance with options
         new PowerBICustomVisualsWebpackPlugin({
             ...pbivizFile,
-            capabilities: capabliliesFile,
+            capabilities: capabilitiesFile,
             packageOutPath: path.join(__dirname, "distr"),
             devMode: false,
             stringResources: {
                 "en-US": {}
-            }
+            },
+			visualSourceLocation: "../../src/index.ts" // path to visual class file
         }),
         // visual plugin regenerates with the visual source, but it does not require relaunching dev server
         new WatchIgnorePlugin([
