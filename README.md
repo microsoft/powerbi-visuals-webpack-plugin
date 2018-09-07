@@ -27,7 +27,7 @@ Plugin config description
     },
     author: "Author of the visual",
     apiVersion: "API version",
-    stringResourcesPath: [
+    stringResources: [
       "Paths to localization files"
     ],
     capabilities: {
@@ -117,9 +117,10 @@ module.exports = {
             capabilities: capabilitiesFile,
             packageOutPath: path.join(__dirname, "distr"),
             devMode: false,
-            stringResources: {
-                "en-US": {}
-            },
+            stringResources: [
+				"stringResources/de-DE.json",
+				"stringResources/en-US.json"
+			],
             visualSourceLocation: "../../src/index.ts" // path to visual class file
         }),
         // visual plugin regenerates with the visual source, but it does not require relaunching dev server
