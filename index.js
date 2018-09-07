@@ -96,7 +96,7 @@ class PowerBICustomVisualsWebpackPlugin {
   async appendExternalJS(externalJS) {
     let fileContent = "";
     for (let file in externalJS) {
-      if (await fs.ensureFile(externalJS[file])) {
+      if (fs.existsSync(externalJS[file])) {
         fileContent += (await fs.readFile(externalJS[file], encoding));
       }
     }
@@ -398,10 +398,10 @@ class PowerBICustomVisualsWebpackPlugin {
       let packageJSONContent  = await this.generatePackageJson(visualConfigProd);
       
       await fs.writeFile(path.join(dropPath, 'package.json'), packageJSONContent);
-      await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContentOrigin);
+      await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContent);
 
       visualConfigProd.content = {
-        js: jsContentOrigin,
+        js: jsContent,
         css: cssContent,
         iconBase64: this.options.iconImage
       }
@@ -411,7 +411,7 @@ class PowerBICustomVisualsWebpackPlugin {
       };
 
       await fs.writeFile(path.join(resourcePath, `${visualConfigProd.visual.guid}.pbiviz.json`), JSON.stringify(visualConfigProd));
-      await fs.writeFile(path.join(resourcePath, 'visual.prod.js'), jsContentOrigin);
+      await fs.writeFile(path.join(resourcePath, 'visual.prod.js'), jsContent);
       await fs.writeFile(path.join(resourcePath, 'visual.prod.css'), cssContent);
 
       if (this.options.generatePbiviz) {
