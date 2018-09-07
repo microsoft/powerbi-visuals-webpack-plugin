@@ -102,9 +102,8 @@ module.exports = {
         inline: false,
         // cert files for dev server
         https: {
-            key: path.join(__dirname, "certs","PowerBICustomVisualTest_public.key"),
-            cert: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.cer"),
-            pfx: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.pfx"),
+			pfx: fs.readFileSync(path.join(__dirname, 'certs', 'PowerBICustomVisualTest_public.pfx')),
+			passphrase: '0000000000000000' // the cert's password (change with your own!)
         },
         headers: {
             "access-control-allow-origin": "*",
