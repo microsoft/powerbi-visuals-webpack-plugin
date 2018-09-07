@@ -63,17 +63,19 @@ class PowerBICustomVisualsWebpackPlugin {
   async parseLocalizationString(options) {
     var stringResources = {};
     if (options.stringResources && options.stringResources.length) {
-      options.stringResources.forEach(async resourcePath => {
+      for (const resourcePath of options.stringResources) {
         if (await fs.exists(path.join(".", resourcePath))) {
           let resource = JSON.parse(await fs.readFile(path.join(".", resourcePath), encoding));
-          stringResources[resource.locale] = resource.values;
+          if (resource.locale) {
+            stringResources[resource.locale] = resource.values;
+          }
         }
-      });
+      }
     }
     let resourcesDir = path.join(".", "stringResources");
     if (await fs.exists(resourcesDir)) {
       let resourcesFolders = await fs.readdir(resourcesDir);
-      resourcesFolders.forEach( async folder => {
+      for (const folder of resourcesFolders) {
         if ((await fs.stat(path.join(resourcesDir, folder))).isDirectory()) {
           let resourceFile = JSON.parse(await fs.readFile(path.join(resourcesDir, folder, "resources.resjson"), encoding));
           if (typeof stringResources[folder] !== "undefined") {
@@ -86,7 +88,7 @@ class PowerBICustomVisualsWebpackPlugin {
             stringResources[folder] = resourceFile;
           }
         }
-      });
+      }
     }
     return stringResources;
   }
