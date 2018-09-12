@@ -43,6 +43,8 @@ class PowerBICustomVisualsWebpackPlugin {
         base64Img.base64Sync(path.join(process.cwd(), options.assets.icon)),
       devMode: true,
       packageOutPath: path.join(process.cwd(), "dist"),
+      packageNameWithGUID: true,
+      packageNameWithVersion: true,
       cssStyles: null,
       generateResources: true,
       generatePbiviz: true,
@@ -110,9 +112,16 @@ class PowerBICustomVisualsWebpackPlugin {
     let resources = zip.folder("resources");
     resources.file(`${visualConfigProd.visual.guid}.pbiviz.json`, JSON.stringify(visualConfigProd));
     let content = await zip.generateAsync({ type: 'nodebuffer' });
-    await fs.writeFile(
-      path.join(dropPath, `${visualConfigProd.visual.guid}.${visualConfigProd.visual.version}.pbiviz`),
-      content);
+
+	let pbiFileName = this.options.packageNameWithGUID === true ? visualConfigProd.visual.guid : visualConfigProd.visual.name;
+	if (this.options.packageNameWithVersion === true){
+		pbiFileName += '-' + visualConfigProd.visual.version;
+	}
+	pbiFileName += '.pbiviz';
+	const pbiPath = path.join(dropPath, pbiFileName);
+	
+	console.info("\nwriting", pbiPath, "\n");
+    await fs.writeFile(pbiPath, content);
   }
 
   async generatePackageJson(visualConfigProd) {

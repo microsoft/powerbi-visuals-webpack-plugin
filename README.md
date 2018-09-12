@@ -27,7 +27,7 @@ Plugin config description
     },
     author: "Author of the visual",
     apiVersion: "API version",
-    stringResources: [
+    stringResourcesPath: [
       "Paths to localization files"
     ],
     capabilities: {
@@ -36,6 +36,8 @@ Plugin config description
     iconImage: "Icon file as base64 string",
     devMode: "development mode",
     packageOutPath: "location to create *.pbiviz file",
+    packageNameWithGUID: true,
+    packageNameWithVersion: true,
     cssStyles: "styles",
     generateResources: "it is used --resources flag in pbiviz tools",
     generatePbiviz: "it is used by --no-pbiviz flag in pbiviz tools"
@@ -71,7 +73,7 @@ const capabilitiesPath = "./capabilities.json";
 const capabilitiesFile = require(path.join(__dirname, capabilitiesPath));
 
 module.exports = {
-    entry: "./.tmp/precompile/visualPlugin.ts",
+    entry: './src/external.ts', // path to visual class file
     devtool: 'source-map',
     mode: "development",
     module: {
@@ -102,8 +104,9 @@ module.exports = {
         inline: false,
         // cert files for dev server
         https: {
-			pfx: fs.readFileSync(path.join(__dirname, 'certs', 'PowerBICustomVisualTest_public.pfx')),
-			passphrase: '0000000000000000' // the cert's password (change with your own!)
+            key: path.join(__dirname, "certs","PowerBICustomVisualTest_public.key"),
+            cert: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.cer"),
+            pfx: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.pfx"),
         },
         headers: {
             "access-control-allow-origin": "*",
@@ -114,14 +117,12 @@ module.exports = {
         // custom visuals plugin instance with options
         new PowerBICustomVisualsWebpackPlugin({
             ...pbivizFile,
-            capabilities: capabilitiesFile,
+            capabilities: capabliliesFile,
             packageOutPath: path.join(__dirname, "distr"),
             devMode: false,
-            stringResources: [
-				"stringResources/de-DE.json",
-				"stringResources/en-US.json"
-			],
-            visualSourceLocation: "../../src/index.ts" // path to visual class file
+            stringResources: {
+                "en-US": {}
+            }
         }),
         // visual plugin regenerates with the visual source, but it does not require relaunching dev server
         new WatchIgnorePlugin([
