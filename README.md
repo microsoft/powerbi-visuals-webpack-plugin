@@ -27,7 +27,7 @@ Plugin config description
     },
     author: "Author of the visual",
     apiVersion: "API version",
-    stringResourcesPath: [
+    stringResources: [
       "Paths to localization files"
     ],
     capabilities: {
@@ -73,7 +73,7 @@ const capabilitiesPath = "./capabilities.json";
 const capabilitiesFile = require(path.join(__dirname, capabilitiesPath));
 
 module.exports = {
-    entry: './src/external.ts', // path to visual class file
+    entry: "./.tmp/precompile/visualPlugin.ts",
     devtool: 'source-map',
     mode: "development",
     module: {
@@ -104,9 +104,8 @@ module.exports = {
         inline: false,
         // cert files for dev server
         https: {
-            key: path.join(__dirname, "certs","PowerBICustomVisualTest_public.key"),
-            cert: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.cer"),
-            pfx: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.pfx"),
+			pfx: fs.readFileSync(path.join(__dirname, 'certs', 'PowerBICustomVisualTest_public.pfx')),
+			passphrase: '0000000000000000' // the cert's password (change with your own!)
         },
         headers: {
             "access-control-allow-origin": "*",
@@ -117,12 +116,14 @@ module.exports = {
         // custom visuals plugin instance with options
         new PowerBICustomVisualsWebpackPlugin({
             ...pbivizFile,
-            capabilities: capabliliesFile,
+            capabilities: capabilitiesFile,
             packageOutPath: path.join(__dirname, "distr"),
             devMode: false,
-            stringResources: {
-                "en-US": {}
-            }
+            stringResources: [
+				"stringResources/de-DE.json",
+				"stringResources/en-US.json"
+			],
+            visualSourceLocation: "../../src/index.ts" // path to visual class file
         }),
         // visual plugin regenerates with the visual source, but it does not require relaunching dev server
         new WatchIgnorePlugin([
