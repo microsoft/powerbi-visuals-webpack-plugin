@@ -256,22 +256,26 @@ class PowerBICustomVisualsWebpackPlugin {
       if (dependenciesFilePath && await fs.exists(dependenciesFilePath)) {
         dependencies = await fs.readJson(dependenciesFilePath);
       }
+      if (!dependencies) {
+        return null;
+      }
     }
 
-    if (!dependencies) {
-      dependencies = {};
-    }
+    if (typeof this.options.dependencies === "object" || typeof dependencies === "object") {
     // use passed or loaded object
-    dependencies = dependencies || this.options.dependencies
-    let schema = this.options.dependenciesSchema || await fs.readJson((path.join(this.options.schemaLocation, 'schema.dependencies.json')));
-    let validator = new Validator();
-    let validation = validator.validate(dependencies, schema);
-    let errors = this._populateErrors(validation.errors, `${this.options.dependencies}`, 'json');
-    if (errors) {
-      throw errors;
-    } else {
-      return dependencies;
+      dependencies = dependencies || this.options.dependencies
+      let schema = this.options.dependenciesSchema || await fs.readJson((path.join(this.options.schemaLocation, 'schema.dependencies.json')));
+      let validator = new Validator();
+      let validation = validator.validate(dependencies, schema);
+      let errors = this._populateErrors(validation.errors, `${this.options.dependencies}`, 'json');
+      if (errors) {
+        throw errors;
+      } else {
+        return dependencies;
+      }
     }
+   
+    return null;
   }
 
   checkVisualInfo(visualConfig) {
@@ -366,6 +370,9 @@ class PowerBICustomVisualsWebpackPlugin {
 
     let dependencies = await this._getDependencies();
     let visualConfig = this.getVisualConfig(stringResources, capabilities, dependencies, jsContent, cssContent);
+    if (!visualConfig.dependencies) {
+      delete visualConfig.dependencies; //delete parameter with null value
+    }
     visualConfig.visual.guid = `${this.options.visual.guid}${ options.devMode ? DEBUG : ''}`;
     let pbivizJSONData = JSON.stringify(visualConfig);
 
