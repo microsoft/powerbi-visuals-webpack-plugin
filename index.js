@@ -146,7 +146,7 @@ class PowerBICustomVisualsWebpackPlugin {
       style: "style/visual.less",
       stringResources: stringResources,
       capabilities: capabilities,
-      dependencies: dependencies || {},
+      dependencies: dependencies,
       content: {
           js: jsContent,
           css: cssContent,
@@ -405,10 +405,10 @@ class PowerBICustomVisualsWebpackPlugin {
       let packageJSONContent  = await this.generatePackageJson(visualConfigProd);
       
       await fs.writeFile(path.join(dropPath, 'package.json'), packageJSONContent);
-      await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContentOrigin);
+      await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContent);
 
       visualConfigProd.content = {
-        js: jsContentOrigin,
+        js: jsContent,
         css: cssContent,
         iconBase64: this.options.iconImage
       }
