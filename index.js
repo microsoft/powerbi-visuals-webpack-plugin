@@ -3,15 +3,16 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs-extra');
 const _ = require('lodash');
-let Validator = require('jsonschema').Validator;
+const Validator = require('jsonschema').Validator;
 
 const base64Img = require('base64-img');
 const JSZip = require('jszip');
-const DEBUG = "_DEBUG";
 
-const encoding = "utf8";
+const DEBUG = "_DEBUG";
+const ENCODING = "utf8";
 
 let chalk = require('chalk');
+
 if (os.platform() === 'darwin') {
   chalk = chalk.bold;
 }
@@ -34,8 +35,7 @@ class PowerBICustomVisualsWebpackPlugin {
       author: "",
       apiVersion: apiVersion,
       stringResourcesPath: {
-        "en-US": {
-        }
+        "en-US": {}
       },
       capabilities: {},
       iconImage: !options.assets.icon ?
@@ -61,43 +61,79 @@ class PowerBICustomVisualsWebpackPlugin {
   }
 
   async parseLocalizationString(options) {
-    var stringResources = {};
-    if (options.stringResources && options.stringResources.length) {
-      for (const resourcePath of options.stringResources) {
-        if (await fs.exists(path.join(".", resourcePath))) {
-          let resource = JSON.parse(await fs.readFile(path.join(".", resourcePath), encoding));
-          if (resource.locale) {
-            stringResources[resource.locale] = resource.values;
-          }
-        }
-      }
-    }
-    let resourcesDir = path.join(".", "stringResources");
-    if (await fs.exists(resourcesDir)) {
-      let resourcesFolders = await fs.readdir(resourcesDir);
-      for (const folder of resourcesFolders) {
-        if ((await fs.stat(path.join(resourcesDir, folder))).isDirectory()) {
-          let resourceFile = JSON.parse(await fs.readFile(path.join(resourcesDir, folder, "resources.resjson"), encoding));
-          if (typeof stringResources[folder] !== "undefined") {
+    return Promise.all([
+        this._parseStringResourcesProperty(options),
+        this._parseStringResourcesFolder(options)
+      ])
+      .then(([source1 = [], source2 = []]) => {
+        const stringResources = Object.create(null);
+        source1.forEach(res => {
+          if (!res) return;
+          stringResources[res.locale] = res.values;
+        });
+        source2.forEach(res => {
+          if (!res) return;
+
+          if (stringResources[res.locale]) {
             // resjson string rewrites exist keys 
-            Object.keys(resourceFile).forEach(key => {
-              stringResources[folder][key] = resourceFile[key];
-            });
+            for (let key in res.values) {
+              stringResources[res.locale][key] = res.values[key];
+            }
+          } else {
+            stringResources[res.locale] = res.values;
           }
-          else {
-            stringResources[folder] = resourceFile;
-          }
-        }
-      }
-    }
-    return stringResources;
+        });
+        return stringResources;
+      });
+  }
+
+  async _parseStringResourcesProperty(options) {
+    if (!options.stringResources || !options.stringResources.length) return;
+    return Promise.all(
+      options.stringResources.map(resourcePath => {
+        return fs.readJSON(
+            path.join(process.cwd(), resourcePath), {
+              throws: false,
+              ENCODING
+            })
+          .catch(err => {
+            console.error(err);
+            return;
+          })
+      })
+    );
+  }
+
+  async _parseStringResourcesFolder(options) {
+    const resourcesDir = path.join(process.cwd(), "stringResources");
+    if (!await fs.exists(resourcesDir)) return;
+
+    const resourcesFolders = await fs.readdir(resourcesDir);
+
+    return Promise.all(
+      resourcesFolders.map(folder => {
+        return fs.readJson(
+            path.join(resourcesDir, folder, "resources.resjson"), {
+              throws: false,
+              ENCODING
+            })
+          .then(resource => ({
+            locale: folder,
+            values: resource
+          }))
+          .catch(err => {
+            console.error(err);
+            return;
+          })
+      })
+    );
   }
 
   async appendExternalJS(externalJS) {
     let fileContent = "";
     for (let file in externalJS) {
       if (await fs.ensureFile(externalJS[file])) {
-        fileContent += (await fs.readFile(externalJS[file], encoding));
+        fileContent += (await fs.readFile(externalJS[file], ENCODING));
       }
     }
 
@@ -109,7 +145,9 @@ class PowerBICustomVisualsWebpackPlugin {
     zip.file('package.json', packageJSONContent);
     let resources = zip.folder("resources");
     resources.file(`${visualConfigProd.visual.guid}.pbiviz.json`, JSON.stringify(visualConfigProd));
-    let content = await zip.generateAsync({ type: 'nodebuffer' });
+    let content = await zip.generateAsync({
+      type: 'nodebuffer'
+    });
     await fs.writeFile(
       path.join(dropPath, `${visualConfigProd.visual.guid}.${visualConfigProd.visual.version}.pbiviz`),
       content);
@@ -117,12 +155,12 @@ class PowerBICustomVisualsWebpackPlugin {
 
   async generatePackageJson(visualConfigProd) {
     let templateOptions = {
-        visualData: visualConfigProd.visual || {},
-        authorData: visualConfigProd.author || {
-          name: "",
-          email: ""
-        },
-        guid: visualConfigProd.visual.guid
+      visualData: visualConfigProd.visual || {},
+      authorData: visualConfigProd.author || {
+        name: "",
+        email: ""
+      },
+      guid: visualConfigProd.visual.guid
     };
     let packageTemplate = await fs.readFile(path.join(__dirname, "templates", "package.json.template"));
     delete templateOptions.visualData.apiVersion;
@@ -132,14 +170,14 @@ class PowerBICustomVisualsWebpackPlugin {
   getVisualConfig(stringResources, capabilities, dependencies, jsContent, cssContent) {
     return {
       visual: {
-          name: this.options.visual.name,
-          displayName: this.options.visual.displayName,
-          guid: `${this.options.visual.guid}`,
-          visualClassName: this.options.visual.visualClassName,
-          version: this.options.visual.version,
-          description: this.options.visual.description,
-          supportUrl: this.options.visual.supportUrl || "",
-          gitHubUrl: this.options.visual.gitHubUrl || ""
+        name: this.options.visual.name,
+        displayName: this.options.visual.displayName,
+        guid: `${this.options.visual.guid}`,
+        visualClassName: this.options.visual.visualClassName,
+        version: this.options.visual.version,
+        description: this.options.visual.description,
+        supportUrl: this.options.visual.supportUrl || "",
+        gitHubUrl: this.options.visual.gitHubUrl || ""
       },
       author: this.options.author,
       apiVersion: this.options.apiVersion,
@@ -148,9 +186,9 @@ class PowerBICustomVisualsWebpackPlugin {
       capabilities: capabilities,
       dependencies: dependencies,
       content: {
-          js: jsContent,
-          css: cssContent,
-          iconBase64: this.options.iconImage
+        js: jsContent,
+        css: cssContent,
+        iconBase64: this.options.iconImage
       },
       visualEntryPoint: ""
     };
@@ -159,9 +197,9 @@ class PowerBICustomVisualsWebpackPlugin {
 
   isRVisual(capabilities) {
     return capabilities &&
-            capabilities.dataViewMappings &&
-            capabilities.dataViewMappings.length === 1 &&
-            typeof capabilities.dataViewMappings[0].scriptResult !== 'undefined';
+      capabilities.dataViewMappings &&
+      capabilities.dataViewMappings.length === 1 &&
+      typeof capabilities.dataViewMappings[0].scriptResult !== 'undefined';
   }
 
   async _getRScriptsContents(scriptFileName) {
@@ -170,27 +208,26 @@ class PowerBICustomVisualsWebpackPlugin {
     const MaxSourceReplacements = 100;
 
     try {
-        let scriptContent = (await fs.readFile(scriptFileName)).toString();
-        // search and replace 'source(fname)' commands
-        for (let i = 0; i < MaxSourceReplacements; i++) {
-            let matchListFileName = Pattern4FileName.exec(scriptContent);
-            if (matchListFileName === null || matchListFileName.length < 2) {
-                break;
-            }
-            let tempFname = path.join(process.cwd(), matchListFileName[1]);
-            let tempContent = '';
-            try {
-                tempContent = (await fs.readFile(tempFname)).toString();
-            }
-            catch (err) {
-                this._error('Can not access file: ' + tempFname);
-                throw (err);
-            }
-            scriptContent = scriptContent.replace(Pattern4FileName, tempContent);
+      let scriptContent = (await fs.readFile(scriptFileName)).toString();
+      // search and replace 'source(fname)' commands
+      for (let i = 0; i < MaxSourceReplacements; i++) {
+        let matchListFileName = Pattern4FileName.exec(scriptContent);
+        if (matchListFileName === null || matchListFileName.length < 2) {
+          break;
         }
-        return scriptContent;
+        let tempFname = path.join(process.cwd(), matchListFileName[1]);
+        let tempContent = '';
+        try {
+          tempContent = (await fs.readFile(tempFname)).toString();
+        } catch (err) {
+          this._error('Can not access file: ' + tempFname);
+          throw (err);
+        }
+        scriptContent = scriptContent.replace(Pattern4FileName, tempContent);
+      }
+      return scriptContent;
     } catch (err) {
-        throw err;
+      throw err;
     }
   }
 
@@ -203,7 +240,7 @@ class PowerBICustomVisualsWebpackPlugin {
     console.error.apply(this, this._prependLogTag(tag, arguments));
   }
 
-  _warn(/* arguments */) {
+  _warn( /* arguments */ ) {
     let tag = chalk.bgYellow.black(' warn  ');
     console.warn.apply(this, this._prependLogTag(tag, arguments));
   }
@@ -215,13 +252,13 @@ class PowerBICustomVisualsWebpackPlugin {
 
   _populateErrors(errors, fileName, type) {
     if (errors && errors.length > 0) {
-        return errors.map(e => {
-            return {
-                filename: fileName,
-                message: e.stack || 'Unknown error',
-                type: type
-            };
-        });
+      return errors.map(e => {
+        return {
+          filename: fileName,
+          message: e.stack || 'Unknown error',
+          type: type
+        };
+      });
     }
   }
 
@@ -262,7 +299,7 @@ class PowerBICustomVisualsWebpackPlugin {
     }
 
     if (typeof this.options.dependencies === "object" || typeof dependencies === "object") {
-    // use passed or loaded object
+      // use passed or loaded object
       dependencies = dependencies || this.options.dependencies
       let schema = this.options.dependenciesSchema || await fs.readJson((path.join(this.options.schemaLocation, 'schema.dependencies.json')));
       let validator = new Validator();
@@ -274,7 +311,7 @@ class PowerBICustomVisualsWebpackPlugin {
         return dependencies;
       }
     }
-   
+
     return null;
   }
 
@@ -308,7 +345,6 @@ class PowerBICustomVisualsWebpackPlugin {
 
   async _emit(compilation) {
     const options = this.options;
-    const encoding = "utf8";
     var stringResources = await this.parseLocalizationString(options);
 
     var capabilities = await this._getCapabilities(options.capabilities);
@@ -329,7 +365,7 @@ class PowerBICustomVisualsWebpackPlugin {
     let externalJSOrigin = "";
 
     let cssContent = "";
-    for(let asset in compilation.assets) {
+    for (let asset in compilation.assets) {
       if (asset.split('.').pop() === "js") {
         jsPath = asset;
         jsContentOrigin = compilation.assets[asset].source();
@@ -344,7 +380,9 @@ class PowerBICustomVisualsWebpackPlugin {
       // if css file wasn't specified, generate empty css file because PBI requres this file from dev server
       // try to get styles from package
       if (options.cssStyles) {
-        let style = await fs.readFile(options.cssStyles, {encoding: encoding});
+        let style = await fs.readFile(options.cssStyles, {
+          ENCODING
+        });
         cssContent = style;
       } else {
         compilation.assets["visual.css"] = {
@@ -391,19 +429,19 @@ class PowerBICustomVisualsWebpackPlugin {
     if (!this.options.devMode) {
       this.checkVisualInfo(visualConfig);
       let dropPath = this.options.packageOutPath
-      if(!(await fs.exists(dropPath))) {
+      if (!(await fs.exists(dropPath))) {
         await fs.mkdir(dropPath);
       }
       let resourcePath = path.join(dropPath, 'resources');
-      if(!(await fs.exists(resourcePath))) {
+      if (!(await fs.exists(resourcePath))) {
         await fs.mkdir(resourcePath);
       }
 
-      let visualConfigProd = _.cloneDeep(visualConfig);  
+      let visualConfigProd = _.cloneDeep(visualConfig);
       visualConfigProd.visual.guid = `${visualConfig.visual.guid}`; // prod version of visual should not contaings _DEBUG postfix
       visualConfigProd.visual.gitHubUrl = visualConfigProd.visual.gitHubUrl || "";
-      let packageJSONContent  = await this.generatePackageJson(visualConfigProd);
-      
+      let packageJSONContent = await this.generatePackageJson(visualConfigProd);
+
       await fs.writeFile(path.join(dropPath, 'package.json'), packageJSONContent);
       await fs.writeFile(path.join(resourcePath, 'visual.js'), jsContent);
 
@@ -434,7 +472,7 @@ class PowerBICustomVisualsWebpackPlugin {
     compiler.plugin("emit", (compilation, callback) => {
       this._emit(compilation)
         .then(() => callback())
-        .catch( ex => {
+        .catch(ex => {
           if (ex.length) {
             ex.forEach(ex => console.log(ex.message));
             return;
@@ -445,7 +483,7 @@ class PowerBICustomVisualsWebpackPlugin {
 
     compiler.plugin("beforeRun", (compilationParams) => {
       this._beforeCompile(compilationParams)
-        .catch( ex => {
+        .catch(ex => {
           if (ex.length) {
             ex.forEach(ex => console.log(ex.message));
             return;
@@ -456,7 +494,7 @@ class PowerBICustomVisualsWebpackPlugin {
 
     compiler.plugin("watchRun", (compilation) => {
       this._beforeCompile(compilation)
-        .catch( ex => {
+        .catch(ex => {
           if (ex.length) {
             ex.forEach(ex => console.log(ex.message));
             return;
