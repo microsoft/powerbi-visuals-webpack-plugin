@@ -1,4 +1,5 @@
 const PowerBICustomVisualsWebpackPlugin = require('../index');
+const getLocalization = require('../extractor/localization');
 const fs = require('fs-extra');
 const path = require('path');
 const assert = require('assert');
@@ -40,7 +41,7 @@ describe("powerbi-visuals-webpack-plugin", function() {
             "Visual_Description_Quality": "The value determines the quality of the pre-estimation"
         };
         const plugin = new PowerBICustomVisualsWebpackPlugin(options);
-        const result = await plugin.parseLocalizationString(plugin.options);
+        const result = await getLocalization(plugin.options);
         assert.deepEqual(result['en-US'], expected, "incorrect localizations");
     });
   });
