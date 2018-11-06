@@ -107,23 +107,30 @@ class PowerBICustomVisualsWebpackPlugin {
 	async _emit(compilation) {
 		const options = this.options;
 
-		const capabilities = getCapabilities(options);
-
 		const config = await Promise.all([
 			getLocalization(options),
 			getDependencies(options),
-			rvisual.patchCababilities(options, capabilities),
+			getCapabilities(options).then(capabilities =>
+				rvisual.patchCababilities(options, capabilities)
+			),
 			getJsContent(options, compilation),
 			getCssContent(options, compilation)
 		])
-			.then(([stringResources, dependencies, _, jsContent, cssContent]) =>
-				this.getVisualConfig(
+			.then(
+				([
 					stringResources,
-					capabilities,
 					dependencies,
+					capabilities,
 					jsContent,
 					cssContent
-				)
+				]) =>
+					this.getVisualConfig(
+						stringResources,
+						capabilities,
+						dependencies,
+						jsContent,
+						cssContent
+					)
 			)
 			.catch(err => {
 				throw err;
@@ -283,6 +290,8 @@ class PowerBICustomVisualsWebpackPlugin {
 			icon: "assets/icon.png"
 		};
 
+		await fs.emptyDir(dropPath);
+
 		operations.push(
 			fs.outputFile(
 				path.join(dropPath, "package.json"),
@@ -331,37 +340,43 @@ class PowerBICustomVisualsWebpackPlugin {
 
 		if (this.options.generatePbiviz) {
 			operations.push(
-				this.generatePbiviz(
-					prodConfig,
-					packageJSONContent,
-					this.options.packageOutPath
-				)
+				this.generatePbiviz(prodConfig, packageJSONContent, dropPath)
 			);
 		}
 
-		await fs.emptyDir(dropPath);
 		return Promise.all(operations).catch(err => {
 			throw err;
 		});
 	}
 
 	async generatePbiviz(visualConfigProd, packageJSONContent, dropPath) {
-		const zip = new JSZip();
-		zip.file("package.json", packageJSONContent);
-		zip.folder("resources").file(
-			`${visualConfigProd.visual.guid}.pbiviz.json`,
-			JSON.stringify(visualConfigProd)
-		);
-		const content = await zip.generateAsync({ type: "nodebuffer" });
-		return await fs.writeFile(
-			path.join(
+		return new Promise((resolve, reject) => {
+			const zip = new JSZip();
+			zip.file("package.json", packageJSONContent);
+			zip.folder("resources").file(
+				`${visualConfigProd.visual.guid}.pbiviz.json`,
+				JSON.stringify(visualConfigProd)
+			);
+			const outPath = path.join(
 				dropPath,
 				`${visualConfigProd.visual.guid}.${
 					visualConfigProd.visual.version
 				}.pbiviz`
-			),
-			content
-		);
+			);
+			const input = zip.generateNodeStream();
+			const out = fs.createWriteStream(outPath, { flags: "w" });
+
+			input
+				.pipe(out)
+				.on("error", err => {
+					logger.error("Cannot create package", err);
+					reject(err);
+				})
+				.on("close", () => {
+					logger.info("Package created!");
+					resolve();
+				});
+		});
 	}
 }
 

@@ -20,9 +20,8 @@ module.exports = async function(options, { assets }) {
 				encoding: ENCODING
 			});
 		} else {
-			result = Promise.resolve(() => {
-				assets["visual.css"] = new RawSource("");
-			});
+			assets["visual.css"] = new RawSource("");
+			result = Promise.resolve("");
 		}
 	}
 	return result || Promise.resolve(chunkContent);

@@ -45,7 +45,7 @@ const isRVisual = capabilities => {
 };
 
 const patchCababilities = async (options, capabilities) => {
-	if (!isRVisual(capabilities)) return Promise.resolve();
+	if (!isRVisual(capabilities)) return Promise.resolve(capabilities);
 
 	const scriptResult = capabilities.dataViewMappings[0].scriptResult;
 	if (
@@ -58,9 +58,9 @@ const patchCababilities = async (options, capabilities) => {
 		process.cwd(),
 		"script." + scriptResult.script.scriptProviderDefault.toLowerCase()
 	);
-	return getContent(filePath).then(content => {
-		scriptResult.script.scriptSourceDefault = content;
-	});
+	const content = getContent(filePath);
+	scriptResult.script.scriptSourceDefault = content;
+	return capabilities;
 };
 
 module.exports = {
