@@ -17,7 +17,10 @@ const getContent = async filePath => {
 		) {
 			replacePromises.push(
 				fs
-					.readFile(path.join(process.cwd(), matchListFileName[1]), ENCODING)
+					.readFile(
+						path.join(process.cwd(), matchListFileName[1]),
+						ENCODING
+					)
 					.then(moduleContent => content =>
 						content.replace(Pattern4FileName, moduleContent)
 					)

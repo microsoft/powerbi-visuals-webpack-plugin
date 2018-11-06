@@ -1,6 +1,7 @@
 const Ajv = require("ajv");
 const path = require("path");
 const fs = require("fs-extra");
+const logger = require("../logger");
 
 const getSchema = async function(options) {
 	if (options.dependenciesSchema)
@@ -17,7 +18,19 @@ module.exports = async function(options) {
 	let getContent;
 	switch (typeof options.dependencies) {
 		case "string": {
-			getContent = fs.readJson(path.join(process.cwd(), options.dependencies));
+			getContent = fs
+				.readJson(path.join(process.cwd(), options.dependencies))
+				.catch(err => {
+					if (err.code === "ENOENT") {
+						logger.warn(
+							`No such file or directory: ${path.join(
+								process.cwd(),
+								options.dependencies
+							)}`
+						);
+					}
+					return null;
+				});
 			break;
 		}
 		case "object": {

@@ -27,10 +27,17 @@ const parseFromFolder = async function(options) {
 			Promise.all(
 				folders.map(folder => {
 					return fs
-						.readJson(path.join(resourcesDir, folder, "resources.resjson"), {
-							throws: false,
-							encoding: ENCODING
-						})
+						.readJson(
+							path.join(
+								resourcesDir,
+								folder,
+								"resources.resjson"
+							),
+							{
+								throws: false,
+								encoding: ENCODING
+							}
+						)
 						.then(resource => ({
 							locale: folder,
 							values: resource

@@ -15,7 +15,9 @@ module.exports = async function(options) {
 	let getContent;
 	switch (typeof options.capabilities) {
 		case "string": {
-			getContent = fs.readJson(path.join(process.cwd(), options.capabilities));
+			getContent = fs.readJson(
+				path.join(process.cwd(), options.capabilities)
+			);
 			break;
 		}
 		case "object": {
