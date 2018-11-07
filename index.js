@@ -80,12 +80,7 @@ class PowerBICustomVisualsWebpackPlugin {
 					callback();
 				})
 				.catch(ex => {
-					if (ex.length) {
-						ex.forEach(ex => console.log(ex.message));
-						return;
-					}
-					logger.error(ex.message);
-					throw ex;
+					[].concat(ex).map(ex => logger.error(ex.message));
 				});
 		});
 
@@ -148,7 +143,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		this.addStatusFile(compilation);
 
 		if (!this.options.devMode) {
-			await this.generateRosources(config);
+			await this.generateResources(config);
 		}
 	}
 
@@ -225,30 +220,25 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	checkVisualInfo(visualConfig) {
-		let failed = false;
+		const errors = [];
 		if (visualConfig && visualConfig.author) {
 			if (!visualConfig.author.name) {
-				logger.error("Author name is not specified");
-				failed = true;
+				errors.push(Error("Author name is not specified"));
 			}
 			if (!visualConfig.author.email) {
-				logger.error("Author e-mail is not specified");
-				failed = true;
+				errors.push(Error("Author e-mail is not specified"));
 			}
 		}
 		if (visualConfig && visualConfig.visual) {
 			if (!visualConfig.visual.description) {
-				logger.error("The visual description is not specified");
-				failed = true;
+				errors.push(Error("The visual description is not specified"));
 			}
 			if (!visualConfig.visual.supportUrl) {
-				logger.error("supportUrl is not specified");
-				failed = true;
+				errors.push(Error("supportUrl is not specified"));
 			}
 		}
-		if (failed) {
-			throw new Error("Metadata is not specified");
-		}
+
+		return errors;
 	}
 
 	addStatusFile(compilation) {
@@ -274,8 +264,9 @@ class PowerBICustomVisualsWebpackPlugin {
 		return _.template(packageTemplate)(templateOptions);
 	}
 
-	async generateRosources(config) {
-		this.checkVisualInfo(config);
+	async generateResources(config) {
+		const validationErrors = this.checkVisualInfo(config);
+		if (validationErrors.length) return Promise.reject(validationErrors);
 
 		const operations = [];
 		const dropPath = this.options.packageOutPath;
