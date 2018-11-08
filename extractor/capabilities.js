@@ -30,7 +30,7 @@ module.exports = async function(options) {
 
 	return Promise.all([getSchema(options), getContent]).then(
 		([schema, json]) => {
-			const ajv = new Ajv();
+			const ajv = new Ajv({ extendRefs: true });
 			const valid = ajv.compile(schema)(json);
 			if (valid) return json;
 			throw "Invalid capabilities";
