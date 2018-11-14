@@ -25,7 +25,7 @@ module.exports = async function(options) {
 			break;
 		}
 		default:
-			throw Error("Not found visual capabilities");
+			throw new Error("Not found visual capabilities");
 	}
 
 	return Promise.all([getSchema(options), getContent]).then(
@@ -33,7 +33,7 @@ module.exports = async function(options) {
 			const ajv = new Ajv({ extendRefs: true });
 			const valid = ajv.compile(schema)(json);
 			if (valid) return json;
-			throw "Invalid capabilities";
+			throw new Error("Invalid capabilities");
 		}
 	);
 };
