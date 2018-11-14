@@ -48,7 +48,7 @@ module.exports = async function(options) {
 			const valid = ajv.compile(schema)(json);
 			if (valid) return json;
 
-			throw "Invalid dependencies";
+			throw new Error("Invalid dependencies");
 		}
 	);
 };

@@ -159,8 +159,8 @@ class PowerBICustomVisualsWebpackPlugin {
 			})
 			.catch(ex => {
 				const errors = [].concat(ex);
-				errors.forEach(ex => this._error(ex.message));
-				throw Error("Failed to generate visualPlugin.ts");
+				errors.forEach(ex => logger.error(ex.message));
+				throw new Error("Failed to generate visualPlugin.ts");
 			});
 	}
 
