@@ -59,7 +59,8 @@ class PowerBICustomVisualsWebpackPlugin {
 			stringResourcesSchema: null,
 			dependenciesSchema: null,
 			modules: true,
-			visualSourceLocation: ""
+			visualSourceLocation: "",
+			pluginLocation: path.join(process.cwd(), ".tmp", "precompile", "visualPlugin.ts")
 		};
 
 		this._name = "PowerBICustomVisualsWebpackPlugin";
@@ -180,8 +181,14 @@ class PowerBICustomVisualsWebpackPlugin {
 			path.join(__dirname, "templates", "plugin.ts.template")
 		);
 		const pluginTs = _.template(pluginTemplate)(pluginOptions);
+		let pluginFolderPath = this.options.pluginLocation.split(path.sep);
+		pluginFolderPath.pop();
+		let pluginFolder = path.join(process.cwd(), pluginFolderPath.join(path.sep));
+		if (!(await fs.exists(pluginFolder))) {
+            await fs.mkdir(pluginFolder);
+        }
 		return await fs.writeFile(
-			path.join(process.cwd(), ".tmp", "precompile", "visualPlugin.ts"),
+			path.join(process.cwd(), this.options.pluginLocation),
 			pluginTs
 		);
 	}
