@@ -1,5 +1,6 @@
 import { <%= visualClass %> } from "<%= visualSourceLocation %>";
-declare var powerbi;
+var powerbiKey = "powerbi";
+var powerbi = window[powerbiKey];
 powerbi.visuals = powerbi.visuals || {};
 powerbi.visuals.plugins = powerbi.visuals.plugins || {};
 powerbi.visuals.plugins["<%= pluginName %>"] = {
@@ -8,7 +9,7 @@ powerbi.visuals.plugins["<%= pluginName %>"] = {
     class: '<%= visualClass %>',
     version: '<%= visualVersion %>',
     apiVersion: '<%= apiVersion %>',
-    create: (options) => {
+    create: function (options) {
         if (<%= visualClass %>) {
             return new <%= visualClass %>(options);
         }
