@@ -9,7 +9,7 @@ powerbi.visuals.plugins["<%= pluginName %>"] = {
     class: '<%= visualClass %>',
     version: '<%= visualVersion %>',
     apiVersion: '<%= apiVersion %>',
-    create: function (options) {
+    create: (options) => {
         if (<%= visualClass %>) {
             return new <%= visualClass %>(options);
         }
@@ -18,5 +18,3 @@ powerbi.visuals.plugins["<%= pluginName %>"] = {
     },
     custom: true
 };
-
-export default powerbi;
