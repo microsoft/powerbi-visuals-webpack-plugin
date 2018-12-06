@@ -53,6 +53,9 @@ const parseFromFolder = async function(options) {
 };
 
 module.exports = async function(options) {
+	if (options.devMode) {
+		return;
+	}
 	return Promise.all([
 		parseFromProperty(options),
 		parseFromFolder(options)

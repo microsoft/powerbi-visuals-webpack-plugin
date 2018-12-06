@@ -1,5 +1,6 @@
 import { <%= visualClass %> } from "<%= visualSourceLocation %>";
-declare var powerbi;
+var powerbiKey = "powerbi";
+var powerbi = window[powerbiKey];
 powerbi.visuals = powerbi.visuals || {};
 powerbi.visuals.plugins = powerbi.visuals.plugins || {};
 powerbi.visuals.plugins["<%= pluginName %>"] = {
@@ -17,5 +18,3 @@ powerbi.visuals.plugins["<%= pluginName %>"] = {
     },
     custom: true
 };
-
-export default powerbi;

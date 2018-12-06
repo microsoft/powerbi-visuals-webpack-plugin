@@ -288,8 +288,6 @@ class PowerBICustomVisualsWebpackPlugin {
 			icon: "assets/icon.png"
 		};
 
-		await fs.emptyDir(dropPath);
-
 		operations.push(
 			fs.outputFile(
 				path.join(dropPath, "package.json"),

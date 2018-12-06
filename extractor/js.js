@@ -27,7 +27,7 @@ module.exports = async function(options, compilation) {
 		}
 	}
 
-	if (options.externalJS) {
+	if (options.externalJS && options.externalJS.length) {
 		sourcePromises.push(appendExternalJS(options.externalJS));
 		sourcePromises.push(Promise.resolve("var globalPowerbi = powerbi;"));
 	}
