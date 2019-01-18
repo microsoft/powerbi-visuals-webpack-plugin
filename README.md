@@ -48,84 +48,208 @@ The sample of config  webpack 4.
 
 ```JavaScript
 const path = require('path');
-const fs = require('fs');
-const _ = require('lodash');
-// for icon file
-const base64Img = require('image-to-base64');
-// werbpack plugin
-const PowerBICustomVisualsWebpackPlugin = require('powerbi-visuals-webpack-plugin');
-const WatchIgnorePlugin = require("webpack").WatchIgnorePlugin;
-// file encoding
-const encoding = "utf8";
+const fs = require("fs");
 
-// string resources
-const stringResourcesPath = path.join("stringResources", "en-US", "resources.json");
+// werbpack plugin
+const webpack = require("webpack");
+console.log(require.resolve('powerbi-visuals-webpack-plugin'));
+const PowerBICustomVisualsWebpackPlugin = require('powerbi-visuals-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const Visualizer = require('webpack-visualizer-plugin');
+const ExtraWatchWebpackPlugin = require('extra-watch-webpack-plugin');
+
+// api configuration
+const powerbiApi = require("powerbi-visuals-api");
+
 // visual configuration json path
 const pbivizPath = "./pbiviz.json";
 const pbivizFile = require(path.join(__dirname, pbivizPath));
-
-const stringResources = JSON.parse(fs.readFileSync(stringResourcesPath, encoding));
 
 // the visual capabilities content
 const capabilitiesPath = "./capabilities.json";
 const capabilitiesFile = require(path.join(__dirname, capabilitiesPath));
 
+const pluginLocation = './.tmp/precompile/visualPlugin.ts'; // path to visual plugin file, the file generates by the plugin
+
+// string resources
+const resourcesFolder = path.join(".","stringResources");
+const localizationFolders = fs.readdirSync(resourcesFolder);
+
+// babel options to support IE11
+let babelOptions = {
+    "presets": [
+        [
+            require.resolve('@babel/preset-env'),
+            {
+                "targets": {
+                    "ie": "11"
+                },
+                useBuiltIns: "entry",
+                modules: false
+            }
+        ]
+    ],
+    sourceType: "unambiguous", // tell to babel that the project can contains different module types, not only es2015 modules
+    cacheDirectory: path.join(".tmp", "babelCache") // path for chace files
+};
+
 module.exports = {
-    entry: './src/external.ts', // path to visual class file
+    entry: {
+        "visual.js": pluginLocation
+    },
+    optimization: {
+        concatenateModules: false,
+        minimize: true // enable minimization for create *.pbiviz file less than 2 Mb, can be disabled for dev mode
+    },
     devtool: 'source-map',
     mode: "development",
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
-                use: 'ts-loader',
-                exclude: /node_modules/
+                parser: {
+                    amd: false
+                }
+            },
+            {
+                test: /(\.ts)x|\.ts$/,
+                include: /powerbi-visuals-|src|precompile\\visualPlugin.ts/,
+                use: [
+                    {
+                        loader: require.resolve('babel-loader'),
+                        options: babelOptions
+                    },
+                    {
+                        loader: require.resolve('ts-loader'),
+                        options: {
+                            transpileOnly: false,
+                            experimentalWatchApi: false
+                        }
+                    }
+                ]
+            },
+            {
+                test: /(\.js)x|\.js$/,
+                use: [
+                    {
+                        loader: require.resolve('babel-loader'),
+                        options: babelOptions
+                    }
+                ]
+            },
+            {
+                test: /\.json$/,
+                loader: require.resolve('json-loader'),
+                type: "javascript/auto"
+            },
+            {
+                test: /\.less$/,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader
+                    },
+                    {
+                        loader: require.resolve('css-loader')
+                    },
+                    {
+                        loader: require.resolve('less-loader'),
+                        options: {
+                            paths: [path.resolve(__dirname, "..", 'node_modules')]
+                        }
+                    }
+                ]
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader
+                    },
+                    {
+                        loader: require.resolve('css-loader')
+                    }
+                ]
             }
         ]
     },
     resolve: {
-        extensions: [ '.tsx', '.ts', '.js' ]
+        extensions: ['.tsx', '.ts', '.jsx', '.js', '.css']
     },
     output: {
-        path: path.join(__dirname, "/.tmp/drop"),
+        path: path.join(__dirname, "/.tmp","drop"),
         publicPath: 'assets',
-        filename: "visual.js",
-        libraryTarget: 'var',
-        library: 'CustomVisual' // it should be CustomVisual, the name is used by visual plugin to create instance of the visual
+        filename: "[name]",
     },
     devServer: {
         disableHostCheck: true,
-        contentBase: path.join(__dirname, ".tmp/drop"), // path with assets for dev server, they are generated by webpack plugin
+        contentBase: path.join(__dirname, ".tmp", "drop"), // path with assets for dev server, they are generated by webpack plugin
         compress: true,
         port: 8080, // dev server port
         hot: false,
         inline: false,
         // cert files for dev server
         https: {
-            key: path.join(__dirname, "certs","PowerBICustomVisualTest_public.key"),
-            cert: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.cer"),
-            pfx: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.pfx"),
+            // key: path.join(__dirname, "certs","PowerBICustomVisualTest_public.key"), // for darwin, linux
+            // cert: path.join(__dirname, "certs", "PowerBICustomVisualTest_public.cer"), // for darwin, linux
+            pfx: fs.readFileSync(path.join(__dirname, "certs", "PowerBICustomVisualTest_public.pfx")), // for windows
+            passphrase: "5031595470751755"
         },
         headers: {
             "access-control-allow-origin": "*",
             "cache-control": "public, max-age=0"
         },
     },
+    externals: {
+        "powerbi-visuals-api": 'null',
+        "fakeDefine": 'false',
+        "corePowerbiObject": "Function('return this.powerbi')()",
+        "realWindow": "Function('return this')()"
+    },
     plugins: [
+        new MiniCssExtractPlugin({
+            filename: "visual.css",
+            chunkFilename: "[id].css"
+        }),
+        new Visualizer({
+            filename: "webpack.statistics.dev.html"
+        }),
+        // visual plugin regenerates with the visual source, but it does not require relaunching dev server
+        new webpack.WatchIgnorePlugin([
+            path.join(__dirname, pluginLocation),
+            "./.tmp/**/*.*"
+        ]),
         // custom visuals plugin instance with options
         new PowerBICustomVisualsWebpackPlugin({
             ...pbivizFile,
-            capabilities: capabliliesFile,
-            packageOutPath: path.join(__dirname, "distr"),
+            capabilities: capabilitiesFile,
+            stringResources: localizationFolders.map(localization => path.join(
+                resourcesFolder,
+                localization,
+                "resources.resjson"
+            )),
+            apiVersion: powerbiApi.version,
+            capabilitiesSchema: powerbiApi.schemas.capabilities,
+            pbivizSchema: powerbiApi.schemas.pbiviz,
+            stringResourcesSchema: powerbiApi.schemas.stringResources,
+            dependenciesSchema: powerbiApi.schemas.dependencies,
             devMode: false,
-            stringResources: {
-                "en-US": {}
-            }
+            generatePbiviz: true,
+            generateResources: true,
+            modules: true,
+            visualSourceLocation: "../../src/visual",
+            pluginLocation: pluginLocation,
+            packageOutPath: path.join(__dirname, "dist")
         }),
-        // visual plugin regenerates with the visual source, but it does not require relaunching dev server
-        new WatchIgnorePlugin([
-            path.join(__dirname, "src", "visualPlugin.js"),
-        ]),
+        new ExtraWatchWebpackPlugin({
+            files: [
+                pbivizPath,
+                capabilitiesPath
+            ]
+        }),
+        new webpack.ProvidePlugin({
+            window: 'realWindow',
+            define: 'fakeDefine',
+            powerbi: 'corePowerbiObject'
+        }),
     ]
 };
 ```
