@@ -1,3 +1,6 @@
+## 2.1.0
+* Compression option for compressing visual package
+
 ## 2.0.1
 * Define `powerbi` variable if it was not defined in `window` object.
 * Log in console JSON validation fails.
