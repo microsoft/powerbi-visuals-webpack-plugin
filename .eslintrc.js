@@ -27,7 +27,12 @@ module.exports = {
 		"no-extra-bind": "warn",
 		"no-process-exit": "warn",
 		"no-use-before-define": "off",
-		"no-unused-vars": ["error", { args: "none" }],
+		"no-unused-vars": [
+			"error",
+			{
+				args: "none"
+			}
+		],
 		"no-unsafe-negation": "error",
 		"no-loop-func": "warn",
 		indent: "off",

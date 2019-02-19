@@ -1,3 +1,6 @@
+## 2.1.1
+* The new visualPlugin template with default export of visualPlugin object
+
 ## 2.1.0
 * Compression option for compressing visual package
 
