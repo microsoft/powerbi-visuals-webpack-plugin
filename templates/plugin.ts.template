@@ -1,12 +1,8 @@
 import { <%= visualClass %> } from "<%= visualSourceLocation %>";
 var powerbiKey = "powerbi";
 var powerbi = window[powerbiKey];
-if (typeof window[powerbiKey] === "undefined") {
-    powerbi = window[powerbiKey] = {};
-}
-powerbi.visuals = powerbi.visuals || {};
-powerbi.visuals.plugins = powerbi.visuals.plugins || {};
-powerbi.visuals.plugins["<%= pluginName %>"] = {
+
+var <%= pluginName %> = {
     name: '<%= pluginName %>',
     displayName: '<%= visualDisplayName %>',
     class: '<%= visualClass %>',
@@ -21,3 +17,11 @@ powerbi.visuals.plugins["<%= pluginName %>"] = {
     },
     custom: true
 };
+
+if (typeof powerbi !== "undefined") {
+    powerbi.visuals = powerbi.visuals || {};
+    powerbi.visuals.plugins = powerbi.visuals.plugins || {};
+    powerbi.visuals.plugins["<%= pluginName %>"] = <%= pluginName %>;
+}
+
+export default <%= pluginName %>;

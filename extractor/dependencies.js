@@ -46,7 +46,9 @@ module.exports = async function(options) {
 			const ajv = new Ajv({ extendRefs: true });
 			const valid = ajv.validate(schema, json);
 			if (valid) return json;
-			ajv.errors.forEach(error => logger.error(error.message, error.dataPath));
+			ajv.errors.forEach(error =>
+				logger.error(error.message, error.dataPath)
+			);
 
 			throw new Error("Invalid dependencies");
 		}
