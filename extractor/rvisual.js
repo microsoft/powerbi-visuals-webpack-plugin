@@ -58,7 +58,7 @@ const patchCababilities = async (options, capabilities) => {
 		process.cwd(),
 		"script." + scriptResult.script.scriptProviderDefault.toLowerCase()
 	);
-	const content = getContent(filePath);
+	const content = await getContent(filePath);
 	scriptResult.script.scriptSourceDefault = content;
 	return capabilities;
 };
