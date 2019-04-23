@@ -1,3 +1,6 @@
+## 2.1.2
+* Fix loading R script into visuals
+
 ## 2.1.1
 * The new visualPlugin template with default export of visualPlugin object
 
