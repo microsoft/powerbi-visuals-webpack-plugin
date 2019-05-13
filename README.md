@@ -46,7 +46,7 @@ Plugin config description
 
 1. Install all required libraries to build a visual
 ```
-npm i webpack webpack-cli powerbi-visuals-webpack-plugin mini-css-extract-plugin webpack-visualizer-plugin extra-watch-webpack-plugin ts-loader less-loader less babel-loader json-loader --save-dev
+npm i webpack webpack-cli powerbi-visuals-webpack-plugin mini-css-extract-plugin webpack-visualizer-plugin extra-watch-webpack-plugin ts-loader less-loader less babel-loader json-loader base64-inline-loader --save-dev
 ```
 
 2. Install babel JS compiler and polyfills 
@@ -228,6 +228,14 @@ module.exports = {
                     {
                         loader: require.resolve('css-loader')
                     }
+                ]
+            },
+            {
+                test: /\.(woff|ttf|ico|woff2|jpg|jpeg|png|webp)$/i,
+                use: [
+                  {
+                    loader: 'base64-inline-loader'
+                  }
                 ]
             }
         ]
