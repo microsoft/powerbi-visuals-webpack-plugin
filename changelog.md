@@ -1,3 +1,8 @@
+## 2.2.0
+* Change `window` object to `realWindow` in visual plugin tempalte.
+
+Requires injection of `window` as `realWindow` object;
+
 ## 2.1.2
 * Fix loading R script into visuals
 

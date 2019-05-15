@@ -1,6 +1,6 @@
 {
   "name": "powerbi-visuals-webpack-plugin",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "PowerBI Custom Visuals webpack plugin",
   "main": "index.js",
   "keywords": [

@@ -1,6 +1,7 @@
+declare var realWindow;
 import { <%= visualClass %> } from "<%= visualSourceLocation %>";
 var powerbiKey = "powerbi";
-var powerbi = window[powerbiKey];
+var powerbi = realWindow[powerbiKey];
 
 var <%= pluginName %> = {
     name: '<%= pluginName %>',
