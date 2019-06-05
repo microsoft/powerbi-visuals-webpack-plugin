@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs-extra");
 const { ENCODING } = require("../constants");
 
-const MAX_IMPORT_R_MODULES = 100;
+const MAX_IMPORT_MODULES = 100;
 
 const getContent = async filePath => {
 	const Pattern4FileName = /^[^#\n]*source\s*?\(\s*?['|"]([^()'"]*)['|"]\s*?\)/m;
@@ -11,7 +11,7 @@ const getContent = async filePath => {
 		let replaceCount = 0;
 		let matchListFileName = Pattern4FileName.exec(content);
 		while (
-			replaceCount < MAX_IMPORT_R_MODULES &&
+			replaceCount < MAX_IMPORT_MODULES &&
 			matchListFileName !== null &&
 			matchListFileName.length >= 2
 		) {
