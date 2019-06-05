@@ -1,3 +1,7 @@
+## 2.1.3
+* Adding support for Python script visuals
+* Fixing logic for replacing source files in scripts
+
 ## 2.1.2
 * Fix loading R script into visuals
 
