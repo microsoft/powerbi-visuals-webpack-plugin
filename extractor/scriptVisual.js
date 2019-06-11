@@ -20,6 +20,8 @@ const getContent = async filePath => {
 			replaceCount++;
 			matchListFileName = Pattern4FileName.exec(content);
 		}
+		
+		return content;
 	});
 };
 
