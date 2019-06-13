@@ -10,7 +10,7 @@ const { ENCODING } = require("./constants");
 const logger = require("./logger");
 const getDependencies = require("./extractor/dependencies");
 const getCapabilities = require("./extractor/capabilities");
-const rvisual = require("./extractor/rvisual");
+const scriptVisual = require("./extractor/scriptVisual");
 const getJsContent = require("./extractor/js");
 const getCssContent = require("./extractor/css");
 const getLocalization = require("./extractor/localization");
@@ -109,7 +109,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			getLocalization(options),
 			getDependencies(options),
 			getCapabilities(options).then(capabilities =>
-				rvisual.patchCababilities(options, capabilities)
+				scriptVisual.patchCababilities(options, capabilities)
 			),
 			getJsContent(options, compilation),
 			getCssContent(options, compilation)
