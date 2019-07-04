@@ -15,7 +15,9 @@
   "scripts": {
     "test": "mocha test/*.test.js",
     "pretty": "prettier --loglevel warn --write \"*.js\"",
-    "eslint": "eslint . extractor"
+    "eslint": "eslint . extractor",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "ajv": "6.5.4",
@@ -24,7 +26,8 @@
     "fs-extra": "6.0.1",
     "jszip": "3.1.5",
     "lodash": "4.17.11",
-    "webpack-sources": "1.3.0"
+    "webpack-sources": "1.3.0",
+    "snyk": "^1.189.0"
   },
   "devDependencies": {
     "eslint": "^5.8.0",
@@ -35,5 +38,6 @@
   },
   "engines": {
     "node": ">=8.0.0"
-  }
+  },
+  "snyk": true
 }
