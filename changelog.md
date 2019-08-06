@@ -1,3 +1,6 @@
+## 2.1.4
+* Lodash was updated up to 4.17.15 version
+
 ## 2.1.3
 * Adding support for Python script visuals
 * Fixing logic for replacing source files in scripts
