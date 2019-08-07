@@ -1,5 +1,5 @@
 ## 2.1.4
-* Lodash was updated up to 4.17.15 version
+* Lodash was substituted by certain packages for deepClone() and template() functions
 
 ## 2.1.3
 * Adding support for Python script visuals

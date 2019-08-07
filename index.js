@@ -1,7 +1,8 @@
 "use strict";
 const path = require("path");
 const fs = require("fs-extra");
-const _ = require("lodash");
+const cloneDeepFunc = require("lodash.clonedeep");
+const templateFunc = require("lodash.template");
 const base64Img = require("base64-img");
 const JSZip = require("jszip");
 const RawSource = require("webpack-sources/lib/RawSource");
@@ -182,7 +183,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		const pluginTemplate = await fs.readFile(
 			path.join(__dirname, "templates", "plugin.ts.template")
 		);
-		const pluginTs = _.template(pluginTemplate)(pluginOptions);
+		const pluginTs = templateFunc(pluginTemplate)(pluginOptions);
 		let pluginFolderPath = this.options.pluginLocation.split(path.sep);
 		pluginFolderPath.pop();
 		let pluginFolder = path.join(
@@ -286,7 +287,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			path.join(__dirname, "templates", "package.json.template")
 		);
 		delete templateOptions.visualData.apiVersion;
-		return _.template(packageTemplate)(templateOptions);
+		return templateFunc(packageTemplate)(templateOptions);
 	}
 
 	async generateResources(config) {
@@ -296,7 +297,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		const operations = [];
 		const dropPath = this.options.packageOutPath;
 		const resourcePath = path.join(dropPath, "resources");
-		const prodConfig = _.cloneDeep(config);
+		const prodConfig = cloneDeepFunc(config);
 
 		prodConfig.visual.guid = `${config.visual.guid}`; // prod version of visual should not contaings _DEBUG postfix
 		prodConfig.visual.gitHubUrl = prodConfig.visual.gitHubUrl || "";
