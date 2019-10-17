@@ -1,14 +1,16 @@
 import { <%= visualClass %> } from "<%= visualSourceLocation %>";
-var powerbiKey = "powerbi";
-var powerbi = window[powerbiKey];
+import powerbiVisualsApi from "powerbi-visuals-api"
+import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin
+import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions
+var powerbiKey: any = "powerbi";
+var powerbi: any = window[powerbiKey];
 
-var <%= pluginName %> = {
+var <%= pluginName %>: IVisualPlugin = {
     name: '<%= pluginName %>',
     displayName: '<%= visualDisplayName %>',
     class: '<%= visualClass %>',
-    version: '<%= visualVersion %>',
     apiVersion: '<%= apiVersion %>',
-    create: (options) => {
+    create: (options: VisualConstructorOptions) => {
         if (<%= visualClass %>) {
             return new <%= visualClass %>(options);
         }

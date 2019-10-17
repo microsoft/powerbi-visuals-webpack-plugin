@@ -1,3 +1,6 @@
+## 2.2.0
+* Update VisualPlugin template. Remove no implicit Any types to allow 'noImplicitAny' configuration in tsconfig.
+
 ## 2.1.4
 * Lodash was substituted by certain packages for deepClone() and template() functions
 
