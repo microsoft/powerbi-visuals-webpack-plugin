@@ -10,12 +10,12 @@ var <%= pluginName %>: IVisualPlugin = {
     displayName: '<%= visualDisplayName %>',
     class: '<%= visualClass %>',
     apiVersion: '<%= apiVersion %>',
-    create: (options: VisualConstructorOptions) => {
+    create: (options?: VisualConstructorOptions) => {
         if (<%= visualClass %>) {
             return new <%= visualClass %>(options);
         }
 
-        console.error('Visual instance not found');
+        throw 'Visual instance not found';
     },
     custom: true
 };
