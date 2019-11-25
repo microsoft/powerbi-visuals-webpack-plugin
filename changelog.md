@@ -1,3 +1,6 @@
+# 2.2.1
+* Fix VisualPlugin template.
+
 ## 2.2.0
 * Update VisualPlugin template. Remove no implicit Any types to allow 'noImplicitAny' configuration in tsconfig.
 
