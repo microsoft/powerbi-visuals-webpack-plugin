@@ -15,12 +15,15 @@ const getContent = async filePath => {
 			matchListFileName !== null &&
 			matchListFileName.length >= 2
 		) {
-			const moduleContent = await fs.readFile(path.join(process.cwd(), matchListFileName[1]), ENCODING);
+			const moduleContent = await fs.readFile(
+				path.join(process.cwd(), matchListFileName[1]),
+				ENCODING
+			);
 			content = content.replace(Pattern4FileName, moduleContent);
 			replaceCount++;
 			matchListFileName = Pattern4FileName.exec(content);
 		}
-		
+
 		return content;
 	});
 };
@@ -34,7 +37,7 @@ const isScriptVisual = capabilities => {
 	);
 };
 
-const getFileExtension = (providerName) => {
+const getFileExtension = providerName => {
 	providerName = providerName.toLowerCase();
 	switch (providerName) {
 		case "r":

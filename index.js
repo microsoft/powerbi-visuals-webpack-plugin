@@ -68,6 +68,9 @@ class PowerBICustomVisualsWebpackPlugin {
 
 		this._name = "PowerBICustomVisualsWebpackPlugin";
 		this.options = Object.assign(defaultOptions, options);
+		this.options.pluginLocation = path.normalize(
+			this.options.pluginLocation
+		);
 		this.options.schemaLocation = path.join(
 			process.cwd(),
 			".api",
@@ -190,9 +193,8 @@ class PowerBICustomVisualsWebpackPlugin {
 			process.cwd(),
 			pluginFolderPath.join(path.sep)
 		);
-		if (!(await fs.exists(pluginFolder))) {
-			await fs.ensureDir(pluginFolder);
-		}
+		console.log("Create dir", pluginFolder);
+		await fs.ensureDir(pluginFolder);
 		// write file if only changes in visualPlugin
 		let oldPluginTs = "";
 		if (
@@ -365,7 +367,7 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	async generatePbiviz(visualConfigProd, packageJSONContent, dropPath) {
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 			const zip = new JSZip();
 			zip.file("package.json", packageJSONContent);
 			zip.folder("resources").file(
@@ -374,10 +376,9 @@ class PowerBICustomVisualsWebpackPlugin {
 			);
 			const outPath = path.join(
 				dropPath,
-				`${visualConfigProd.visual.guid}.${
-					visualConfigProd.visual.version
-				}.pbiviz`
+				`${visualConfigProd.visual.guid}.${visualConfigProd.visual.version}.pbiviz`
 			);
+			await fs.ensureDir(dropPath);
 			if (this.options.compression !== "0") {
 				logger.info("Package compression enabled");
 			} else {

@@ -1,3 +1,7 @@
+# 2.2.2
+* Fix generating visual plugin folder and dist folder on build
+* Update webpack configuration sample
+
 # 2.2.1
 * Fix VisualPlugin template.
 
