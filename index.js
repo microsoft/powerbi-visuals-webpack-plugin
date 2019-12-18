@@ -193,7 +193,6 @@ class PowerBICustomVisualsWebpackPlugin {
 			process.cwd(),
 			pluginFolderPath.join(path.sep)
 		);
-		console.log("Create dir", pluginFolder);
 		await fs.ensureDir(pluginFolder);
 		// write file if only changes in visualPlugin
 		let oldPluginTs = "";
