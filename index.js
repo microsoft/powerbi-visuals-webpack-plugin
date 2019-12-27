@@ -63,7 +63,8 @@ class PowerBICustomVisualsWebpackPlugin {
 			modules: true,
 			visualSourceLocation: "",
 			pluginLocation: path.join(".tmp", "precompile", "visualPlugin.ts"),
-			compression: 0 // no compression
+			compression: 0, // no compression,
+			toolsVersion: null
 		};
 
 		this._name = "PowerBICustomVisualsWebpackPlugin";
@@ -242,7 +243,8 @@ class PowerBICustomVisualsWebpackPlugin {
 				css: cssContent,
 				iconBase64: this.options.iconImage
 			},
-			visualEntryPoint: ""
+			visualEntryPoint: "",
+			toolsVersion: this.options.toolsVersion
 		};
 	}
 
