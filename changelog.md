@@ -1,3 +1,6 @@
+# 2.2.3
+* Plugin adds tools version into visual package
+
 # 2.2.2
 * Fix generating visual plugin folder and dist folder on build
 * Update webpack configuration sample
