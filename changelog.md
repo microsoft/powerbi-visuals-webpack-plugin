@@ -1,3 +1,6 @@
+# 2.2.4
+* Fix VisualPlugin template: convert to required parameter
+
 # 2.2.3
 * Plugin adds tools version into visual package
 
