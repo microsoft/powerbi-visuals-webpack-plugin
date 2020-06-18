@@ -67,7 +67,7 @@ Plugin config description
 
 4. Create SSL certificates  (optional)
 
-    You need generate SSL certificates manually or copy files from powerbi-visuals-toos instance.
+    You need generate SSL certificates manually or copy files from powerbi-visuals-tools instance.
 
     [Read more](https://microsoft.github.io/PowerBI-visuals/docs/how-to-guide/create-ssl-certificate/) about certificates in documentation.
 
@@ -76,7 +76,7 @@ Plugin config description
     4.1 Run the following command:
 
     ```cmd
-        npm i powerbi-visuals-toos@beta --save-dev
+        npm i powerbi-visuals-tools@beta --save-dev
     ```
 
     to install the latest version of tools
