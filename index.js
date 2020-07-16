@@ -3,7 +3,6 @@ const path = require("path");
 const fs = require("fs-extra");
 const cloneDeepFunc = require("lodash.clonedeep");
 const templateFunc = require("lodash.template");
-const base64Img = require("base64-img");
 const JSZip = require("jszip");
 const RawSource = require("webpack-sources/lib/RawSource");
 
@@ -17,6 +16,25 @@ const getCssContent = require("./extractor/css");
 const getLocalization = require("./extractor/localization");
 
 const DEBUG = "_DEBUG";
+
+const base64Img = (filepath) => {
+	let imageAsBase64 = fs.readFileSync(filepath, "base64"),
+		defaultExt = "png",
+		extName = path.extname(filepath).substr(1) || defaultExt;
+
+	const extToMIME = {
+		svg: "svg+xml",
+		ico: "image/vnd.microsoft.icon",
+		jpg: "jpeg",
+		wbmp: "vnd.wap.wbmp"
+	};
+
+	let MIME = `image/${extToMIME[extName] || extName}`,
+		prefix = `data:${MIME};base64,`,
+		base64string = `${prefix}${imageAsBase64}`;
+
+	return base64string;
+};
 
 class PowerBICustomVisualsWebpackPlugin {
 	constructor(options) {
@@ -42,12 +60,8 @@ class PowerBICustomVisualsWebpackPlugin {
 			},
 			capabilities: {},
 			iconImage: !options.assets.icon
-				? base64Img.base64Sync(
-						path.join(__dirname, "templates", "icon.png")
-				  )
-				: base64Img.base64Sync(
-						path.join(process.cwd(), options.assets.icon)
-				  ),
+				? base64Img(path.join(__dirname, "templates", "icon.png"))
+				: base64Img(path.join(process.cwd(), options.assets.icon)),
 			devMode: true,
 			packageOutPath: path.join(process.cwd(), "dist"),
 			cssStyles: null,
