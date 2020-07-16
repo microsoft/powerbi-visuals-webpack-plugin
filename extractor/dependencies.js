@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs-extra");
 const logger = require("../logger");
 
-const getSchema = async function(options) {
+const getSchema = async function (options) {
 	if (options.dependenciesSchema)
 		return Promise.resolve(options.dependenciesSchema);
 
@@ -12,7 +12,7 @@ const getSchema = async function(options) {
 	);
 };
 
-module.exports = async function(options) {
+module.exports = async function (options) {
 	if (!options.dependencies) return Promise.resolve(null);
 
 	let getContent;
@@ -20,7 +20,7 @@ module.exports = async function(options) {
 		case "string": {
 			getContent = fs
 				.readJson(path.join(process.cwd(), options.dependencies))
-				.catch(err => {
+				.catch((err) => {
 					if (err.code === "ENOENT") {
 						logger.warn(
 							`No such file or directory: ${path.join(
@@ -46,7 +46,7 @@ module.exports = async function(options) {
 			const ajv = new Ajv({ extendRefs: true });
 			const valid = ajv.validate(schema, json);
 			if (valid) return json;
-			ajv.errors.forEach(error =>
+			ajv.errors.forEach((error) =>
 				logger.error(error.message, error.dataPath)
 			);
 

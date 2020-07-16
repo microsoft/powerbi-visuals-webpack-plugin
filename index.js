@@ -26,7 +26,7 @@ const base64Img = (filepath) => {
 		svg: "svg+xml",
 		ico: "image/vnd.microsoft.icon",
 		jpg: "jpeg",
-		wbmp: "vnd.wap.wbmp"
+		wbmp: "vnd.wap.wbmp",
 	};
 
 	let MIME = `image/${extToMIME[extName] || extName}`,
@@ -51,12 +51,12 @@ class PowerBICustomVisualsWebpackPlugin {
 				version: "1.0.0.0",
 				description: "",
 				supportUrl: "",
-				gitHubUrl: ""
+				gitHubUrl: "",
 			},
 			author: "",
 			apiVersion: apiVersion,
 			stringResourcesPath: {
-				"en-US": {}
+				"en-US": {},
 			},
 			capabilities: {},
 			iconImage: !options.assets.icon
@@ -78,7 +78,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			visualSourceLocation: "",
 			pluginLocation: path.join(".tmp", "precompile", "visualPlugin.ts"),
 			compression: 0, // no compression,
-			toolsVersion: null
+			toolsVersion: null,
 		};
 
 		this._name = "PowerBICustomVisualsWebpackPlugin";
@@ -101,8 +101,8 @@ class PowerBICustomVisualsWebpackPlugin {
 					logger.info("Finish packaging");
 					callback();
 				})
-				.catch(ex => {
-					[].concat(ex).map(ex => logger.error(ex.message));
+				.catch((ex) => {
+					[].concat(ex).map((ex) => logger.error(ex.message));
 				});
 		});
 
@@ -127,11 +127,11 @@ class PowerBICustomVisualsWebpackPlugin {
 		const config = await Promise.all([
 			getLocalization(options),
 			getDependencies(options),
-			getCapabilities(options).then(capabilities =>
+			getCapabilities(options).then((capabilities) =>
 				scriptVisual.patchCababilities(options, capabilities)
 			),
 			getJsContent(options, compilation),
-			getCssContent(options, compilation)
+			getCssContent(options, compilation),
 		])
 			.then(
 				([
@@ -139,7 +139,7 @@ class PowerBICustomVisualsWebpackPlugin {
 					dependencies,
 					capabilities,
 					jsContent,
-					cssContent
+					cssContent,
 				]) =>
 					this.getVisualConfig(
 						stringResources,
@@ -149,7 +149,7 @@ class PowerBICustomVisualsWebpackPlugin {
 						cssContent
 					)
 			)
-			.catch(err => {
+			.catch((err) => {
 				throw err;
 			});
 
@@ -178,9 +178,9 @@ class PowerBICustomVisualsWebpackPlugin {
 					logger.info("Finish preparing plugin template");
 					callback();
 				})
-				.catch(ex => {
+				.catch((ex) => {
 					const errors = [].concat(ex);
-					errors.forEach(ex => logger.error(ex.message));
+					errors.forEach((ex) => logger.error(ex.message));
 					throw new Error("Failed to generate visualPlugin.ts");
 				});
 		}
@@ -196,7 +196,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			visualDisplayName: this.options.visual.displayName,
 			visualVersion: this.options.visual.version,
 			apiVersion: this.options.apiVersion,
-			visualSourceLocation: this.options.visualSourceLocation
+			visualSourceLocation: this.options.visualSourceLocation,
 		};
 		const pluginTemplate = await fs.readFile(
 			path.join(__dirname, "templates", "plugin.ts.template")
@@ -244,7 +244,7 @@ class PowerBICustomVisualsWebpackPlugin {
 				version: this.options.visual.version,
 				description: this.options.visual.description,
 				supportUrl: this.options.visual.supportUrl || "",
-				gitHubUrl: this.options.visual.gitHubUrl || ""
+				gitHubUrl: this.options.visual.gitHubUrl || "",
 			},
 			author: this.options.author,
 			apiVersion: this.options.apiVersion,
@@ -255,10 +255,10 @@ class PowerBICustomVisualsWebpackPlugin {
 			content: {
 				js: jsContent,
 				css: cssContent,
-				iconBase64: this.options.iconImage
+				iconBase64: this.options.iconImage,
 			},
 			visualEntryPoint: "",
-			toolsVersion: this.options.toolsVersion
+			toolsVersion: this.options.toolsVersion,
 		};
 	}
 
@@ -296,9 +296,9 @@ class PowerBICustomVisualsWebpackPlugin {
 			visualData: visualConfigProd.visual || {},
 			authorData: visualConfigProd.author || {
 				name: "",
-				email: ""
+				email: "",
 			},
-			guid: visualConfigProd.visual.guid
+			guid: visualConfigProd.visual.guid,
 		};
 		let packageTemplate = await fs.readFile(
 			path.join(__dirname, "templates", "package.json.template")
@@ -321,7 +321,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		let packageJSONContent = await this.generatePackageJson(prodConfig);
 		prodConfig.externalJS = [];
 		prodConfig.assets = {
-			icon: "assets/icon.png"
+			icon: "assets/icon.png",
 		};
 
 		operations.push(
@@ -329,7 +329,7 @@ class PowerBICustomVisualsWebpackPlugin {
 				path.join(dropPath, "package.json"),
 				packageJSONContent,
 				{
-					encoding: ENCODING
+					encoding: ENCODING,
 				}
 			)
 		);
@@ -340,7 +340,7 @@ class PowerBICustomVisualsWebpackPlugin {
 					path.join(resourcePath, "visual.js"),
 					config.content.js,
 					{
-						encoding: ENCODING
+						encoding: ENCODING,
 					}
 				),
 				fs.outputFile(
@@ -350,21 +350,21 @@ class PowerBICustomVisualsWebpackPlugin {
 					),
 					JSON.stringify(prodConfig),
 					{
-						encoding: ENCODING
+						encoding: ENCODING,
 					}
 				),
 				fs.outputFile(
 					path.join(resourcePath, "visual.prod.js"),
 					config.content.js,
 					{
-						encoding: ENCODING
+						encoding: ENCODING,
 					}
 				),
 				fs.outputFile(
 					path.join(resourcePath, "visual.prod.css"),
 					config.content.css,
 					{
-						encoding: ENCODING
+						encoding: ENCODING,
 					}
 				)
 			);
@@ -376,7 +376,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			);
 		}
 
-		return Promise.all(operations).catch(err => {
+		return Promise.all(operations).catch((err) => {
 			throw err;
 		});
 	}
@@ -403,16 +403,16 @@ class PowerBICustomVisualsWebpackPlugin {
 				compression:
 					this.options.compression !== "0" ? "DEFLATE" : "STORE",
 				compressionOptions: {
-					level: this.options.compression
-				}
+					level: this.options.compression,
+				},
 			});
 			const out = fs.createWriteStream(outPath, {
-				flags: "w"
+				flags: "w",
 			});
 
 			input
 				.pipe(out)
-				.on("error", err => {
+				.on("error", (err) => {
 					logger.error("Cannot create package", err);
 					reject(err);
 				})

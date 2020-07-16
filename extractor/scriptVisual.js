@@ -4,10 +4,10 @@ const { ENCODING } = require("../constants");
 
 const MAX_IMPORT_MODULES = 100;
 
-const getContent = async filePath => {
+const getContent = async (filePath) => {
 	const Pattern4FileName = /^[^#\n]*source\s*?\(\s*?['|"]([^()'"]*)['|"]\s*?\)/m;
 
-	return fs.readFile(filePath, ENCODING).then(async content => {
+	return fs.readFile(filePath, ENCODING).then(async (content) => {
 		let replaceCount = 0;
 		let matchListFileName = Pattern4FileName.exec(content);
 		while (
@@ -28,7 +28,7 @@ const getContent = async filePath => {
 	});
 };
 
-const isScriptVisual = capabilities => {
+const isScriptVisual = (capabilities) => {
 	return (
 		capabilities &&
 		capabilities.dataViewMappings &&
@@ -37,7 +37,7 @@ const isScriptVisual = capabilities => {
 	);
 };
 
-const getFileExtension = providerName => {
+const getFileExtension = (providerName) => {
 	providerName = providerName.toLowerCase();
 	switch (providerName) {
 		case "r":
@@ -71,5 +71,5 @@ const patchCababilities = async (options, capabilities) => {
 module.exports = {
 	getContent,
 	isScriptVisual,
-	patchCababilities
+	patchCababilities,
 };

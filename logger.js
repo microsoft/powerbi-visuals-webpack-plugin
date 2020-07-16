@@ -23,5 +23,5 @@ module.exports = {
 	info: (...args) => {
 		const tag = chalk.bgCyan(" info  ");
 		console.info.apply(null, _prependLogTag(tag, args));
-	}
+	},
 };
