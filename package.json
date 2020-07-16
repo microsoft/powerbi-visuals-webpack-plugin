@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "ajv": "6.12.3",
+    "chalk": "^4.1.0",
     "fs-extra": "9.0.1",
     "jszip": "3.5.0",
     "lodash.clonedeep": "4.5.0",

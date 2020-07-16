@@ -4,17 +4,17 @@ const RawSource = require("webpack-sources/lib/RawSource");
 const { ENCODING } = require("../constants");
 const logger = require("../logger");
 
-const appendExternalJS = async function(externalJS) {
+const appendExternalJS = async function (externalJS) {
 	return Promise.all(
-		externalJS.map(path =>
-			fs.readFile(path, ENCODING).catch(err => {
+		externalJS.map((path) =>
+			fs.readFile(path, ENCODING).catch((err) => {
 				logger.warn(err.message);
 			})
 		)
-	).then(results => results.join(""));
+	).then((results) => results.join(""));
 };
 
-module.exports = async function(options, compilation) {
+module.exports = async function (options, compilation) {
 	let path, chunkContent;
 	const sourcePromises = [];
 
@@ -33,7 +33,7 @@ module.exports = async function(options, compilation) {
 	}
 	sourcePromises.push(Promise.resolve(chunkContent));
 
-	return Promise.all(sourcePromises).then(chunks => {
+	return Promise.all(sourcePromises).then((chunks) => {
 		const content = chunks.join("\n");
 		compilation.assets[path] = new RawSource(content);
 		return content;

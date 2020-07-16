@@ -2,16 +2,16 @@ const path = require("path");
 const fs = require("fs-extra");
 const { ENCODING } = require("../constants");
 
-const parseFromProperty = async function(options) {
+const parseFromProperty = async function (options) {
 	if (!options.stringResources || !options.stringResources.length) return;
 	return Promise.all(
-		options.stringResources.map(resourcePath => {
+		options.stringResources.map((resourcePath) => {
 			return fs
 				.readJSON(path.join(process.cwd(), resourcePath), {
 					throws: false,
-					encoding: ENCODING
+					encoding: ENCODING,
 				})
-				.catch(err => {
+				.catch((err) => {
 					console.error(err);
 					return;
 				});
@@ -19,13 +19,13 @@ const parseFromProperty = async function(options) {
 	);
 };
 
-const parseFromFolder = async function(options) {
+const parseFromFolder = async function (options) {
 	const resourcesDir = path.join(process.cwd(), "stringResources");
 
 	return fs.readdir(resourcesDir).then(
-		folders =>
+		(folders) =>
 			Promise.all(
-				folders.map(folder => {
+				folders.map((folder) => {
 					return fs
 						.readJson(
 							path.join(
@@ -35,14 +35,14 @@ const parseFromFolder = async function(options) {
 							),
 							{
 								throws: false,
-								encoding: ENCODING
+								encoding: ENCODING,
 							}
 						)
-						.then(resource => ({
+						.then((resource) => ({
 							locale: folder,
-							values: resource
+							values: resource,
 						}))
-						.catch(err => {
+						.catch((err) => {
 							console.error(err);
 							return;
 						});
@@ -52,20 +52,20 @@ const parseFromFolder = async function(options) {
 	);
 };
 
-module.exports = async function(options) {
+module.exports = async function (options) {
 	if (options.devMode) {
 		return;
 	}
 	return Promise.all([
 		parseFromProperty(options),
-		parseFromFolder(options)
+		parseFromFolder(options),
 	]).then(([source1 = [], source2 = []]) => {
 		const stringResources = Object.create(null);
-		source1.forEach(res => {
+		source1.forEach((res) => {
 			if (!res) return;
 			stringResources[res.locale] = res.values;
 		});
-		source2.forEach(res => {
+		source2.forEach((res) => {
 			if (!res) return;
 
 			if (stringResources[res.locale]) {

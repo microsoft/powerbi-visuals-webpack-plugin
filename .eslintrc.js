@@ -4,13 +4,13 @@ module.exports = {
 	extends: [
 		"eslint:recommended",
 		"plugin:node/recommended",
-		"plugin:prettier/recommended"
+		"plugin:prettier/recommended",
 	],
 	env: {
-		node: true
+		node: true,
 	},
 	parserOptions: {
-		ecmaVersion: 8
+		ecmaVersion: 8,
 	},
 	rules: {
 		"prettier/prettier": "error",
@@ -19,6 +19,7 @@ module.exports = {
 		"no-template-curly-in-string": "error",
 		"no-caller": "error",
 		"no-control-regex": "off",
+		"no-async-promise-executor": "off",
 		yoda: "error",
 		eqeqeq: "error",
 		"global-require": "off",
@@ -30,8 +31,8 @@ module.exports = {
 		"no-unused-vars": [
 			"error",
 			{
-				args: "none"
-			}
+				args: "none",
+			},
 		],
 		"no-unsafe-negation": "error",
 		"no-loop-func": "warn",
@@ -47,19 +48,19 @@ module.exports = {
 					class: "DONTUSE",
 					inheritdoc: "DONTUSE",
 					description: "DONTUSE",
-					readonly: "DONTUSE"
+					readonly: "DONTUSE",
 				},
 				preferType: {
-					"*": "any"
+					"*": "any",
 				},
-				requireReturnType: true
-			}
+				requireReturnType: true,
+			},
 		],
 		"node/no-unsupported-features": "error",
 		"node/no-deprecated-api": "error",
 		"node/no-missing-import": "error",
 		"node/no-unpublished-bin": "error",
 		"node/no-unpublished-require": "error",
-		"node/process-exit-as-throw": "error"
-	}
+		"node/process-exit-as-throw": "error",
+	},
 };

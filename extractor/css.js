@@ -3,7 +3,7 @@ const RawSource = require("webpack-sources/lib/RawSource");
 
 const { ENCODING } = require("../constants");
 
-module.exports = async function(options, { assets }) {
+module.exports = async function (options, { assets }) {
 	let chunkContent, result;
 
 	for (let asset in assets) {
@@ -17,7 +17,7 @@ module.exports = async function(options, { assets }) {
 	if (!chunkContent) {
 		if (options.cssStyles) {
 			result = fs.readFile(options.cssStyles, {
-				encoding: ENCODING
+				encoding: ENCODING,
 			});
 		} else {
 			assets["visual.css"] = new RawSource("");
