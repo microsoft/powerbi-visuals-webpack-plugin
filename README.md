@@ -254,6 +254,10 @@ Plugin config description
             path: path.join(__dirname, "/.tmp","drop"),
             publicPath: 'assets',
             filename: "[name]",
+			// if API version of the visual is higer/equal than 3.2.0 add library and libraryTarget options into config
+        	// API version less that 3.2.0 doesn't require it
+        	library: +powerbiApi.version.replaceAll(/\./g,"") >= 320 ? pbivizFile.visual.guid : null,
+        	libraryTarget: +powerbiApi.version.replaceAll(/\./g,"") >= 320 ? 'var' : null
         },
         devServer: {
             disableHostCheck: true,
