@@ -254,8 +254,9 @@ Plugin config description
             path: path.join(__dirname, "/.tmp","drop"),
             publicPath: 'assets',
             filename: "[name]",
-			//library: pbivizFile.visual.guid, // for Powerbi-visuals-api 3.2.0 or higher 
-        	//libraryTarget: 'var', // for Powerbi-visuals-api 3.2.0 or higher
+			library: pbivizFile.visual.guid,
+        	libraryTarget: 'var'
+			// for Powerbi-visuals-api version bellow or equal to 2.6.0 do NOT use 'library' and 'libraryTarget' values
         },
         devServer: {
             disableHostCheck: true,
