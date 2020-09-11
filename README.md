@@ -254,10 +254,10 @@ Plugin config description
             path: path.join(__dirname, "/.tmp","drop"),
             publicPath: 'assets',
             filename: "[name]",
-			// if API version of the visual is higer/equal than 3.2.0 add library and libraryTarget options into config
+		// if API version of the visual is higer/equal than 3.2.0 add library and libraryTarget options into config
         	// API version less that 3.2.0 doesn't require it
-        	library: +powerbiApi.version.replaceAll(/\./g,"") >= 320 ? pbivizFile.visual.guid : null,
-        	libraryTarget: +powerbiApi.version.replaceAll(/\./g,"") >= 320 ? 'var' : null
+        	library: +powerbiApi.version.replace(/\./g,"") >= 320 ? pbivizFile.visual.guid : undefined,
+        	libraryTarget: +powerbiApi.version.replace(/\./g,"") >= 320 ? 'var' : undefined,
         },
         devServer: {
             disableHostCheck: true,
@@ -279,11 +279,16 @@ Plugin config description
                 "cache-control": "public, max-age=0"
             },
         },
-        externals: {
-            "powerbi-visuals-api": 'null',
-            "fakeDefine": 'false',
-            "corePowerbiObject": "Function('return this.powerbi')()",
-            "realWindow": "Function('return this')()"
+        externals: powerbiApi.version.replace(/\./g,"") >= 320 ? 
+        {
+        	"powerbi-visuals-api": 'null',
+        	"fakeDefine": 'false',
+        } :
+        {
+        	"powerbi-visuals-api": 'null',
+        	"fakeDefine": 'false',
+        	"corePowerbiObject": "Function('return this.powerbi')()",
+        	"realWindow": "Function('return this')()"
         },
         plugins: [
             new MiniCssExtractPlugin({
@@ -328,11 +333,15 @@ Plugin config description
                     capabilitiesPath
                 ]
             }),
-            new webpack.ProvidePlugin({
-                window: 'realWindow',
-                define: 'fakeDefine',
-                powerbi: 'corePowerbiObject'
-            }),
+            powerbiApi.version.replace(/\./g,"") >= 320 ? 
+        	new webpack.ProvidePlugin({
+            	define: 'fakeDefine',
+        	}) : 
+        	new webpack.ProvidePlugin({
+            	window: 'realWindow',
+            	define: 'fakeDefine',
+            	powerbi: 'corePowerbiObject'
+        	})
         ]
     };
     ```
