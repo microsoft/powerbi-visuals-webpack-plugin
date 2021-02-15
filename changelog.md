@@ -1,3 +1,7 @@
+# 2.2.6
+* Update dependencies;
+* Vulnerabilities fixed;
+
 # 2.2.4
 * Fix VisualPlugin template: convert to required parameter
 
