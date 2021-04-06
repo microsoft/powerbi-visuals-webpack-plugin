@@ -2,7 +2,6 @@
 const path = require("path");
 const fs = require("fs-extra");
 const cloneDeepFunc = require("lodash.clonedeep");
-const templateFunc = require("lodash.template");
 const JSZip = require("jszip");
 const RawSource = require("webpack-sources/lib/RawSource");
 
@@ -14,6 +13,8 @@ const scriptVisual = require("./extractor/scriptVisual");
 const getJsContent = require("./extractor/js");
 const getCssContent = require("./extractor/css");
 const getLocalization = require("./extractor/localization");
+const pluginTemplate = require("./templates/plugin-template");
+const jsonTemplate = require("./templates/package-json-template");
 
 const DEBUG = "_DEBUG";
 
@@ -198,10 +199,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			apiVersion: this.options.apiVersion,
 			visualSourceLocation: this.options.visualSourceLocation,
 		};
-		const pluginTemplate = await fs.readFile(
-			path.join(__dirname, "templates", "plugin.ts.template")
-		);
-		const pluginTs = templateFunc(pluginTemplate)(pluginOptions);
+		const pluginTs = pluginTemplate(pluginOptions);
 		let pluginFolderPath = this.options.pluginLocation.split(path.sep);
 		pluginFolderPath.pop();
 		let pluginFolder = path.join(
@@ -300,11 +298,9 @@ class PowerBICustomVisualsWebpackPlugin {
 			},
 			guid: visualConfigProd.visual.guid,
 		};
-		let packageTemplate = await fs.readFile(
-			path.join(__dirname, "templates", "package.json.template")
-		);
+	
 		delete templateOptions.visualData.apiVersion;
-		return templateFunc(packageTemplate)(templateOptions);
+		return jsonTemplate(templateOptions);
 	}
 
 	async generateResources(config) {

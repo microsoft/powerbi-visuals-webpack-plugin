@@ -1,3 +1,6 @@
+# 2.2.5
+* Removed `lodash.template` usage;
+
 # 2.2.4
 * Fix VisualPlugin template: convert to required parameter
 
