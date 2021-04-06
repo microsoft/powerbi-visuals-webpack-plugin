@@ -298,7 +298,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			},
 			guid: visualConfigProd.visual.guid,
 		};
-	
+
 		delete templateOptions.visualData.apiVersion;
 		return jsonTemplate(templateOptions);
 	}

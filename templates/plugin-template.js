@@ -1,5 +1,5 @@
 module.exports = function (pluginOptions) {
-    return (`import { ${pluginOptions.visualClass} } from "${pluginOptions.visualSourceLocation}";
+    return `import { ${pluginOptions.visualClass} } from "${pluginOptions.visualSourceLocation}";
 import powerbiVisualsApi from "powerbi-visuals-api"
 import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin
 import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions
@@ -27,5 +27,5 @@ if (typeof powerbi !== "undefined") {
     powerbi.visuals.plugins["${pluginOptions.pluginName}"] = ${pluginOptions.pluginName};
 }
 
-export default ${pluginOptions.pluginName};`)
+export default ${pluginOptions.pluginName};`;
 };
