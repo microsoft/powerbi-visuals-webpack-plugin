@@ -1,5 +1,5 @@
 module.exports = function (templateOptions) {
-    return `{
+	return `{
     "version": ${JSON.stringify(templateOptions.visualData.version)},
     "author": ${JSON.stringify(templateOptions.authorData)},
     "resources": [
