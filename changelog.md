@@ -1,4 +1,4 @@
-# 2.2.5
+# 2.2.6
 * Removed `lodash.template` usage;
 
 # 2.2.4

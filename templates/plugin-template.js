@@ -1,8 +1,8 @@
 module.exports = function (pluginOptions) {
 	return `import { ${pluginOptions.visualClass} } from "${pluginOptions.visualSourceLocation}";
-import powerbiVisualsApi from "powerbi-visuals-api"
-import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin
-import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions
+import powerbiVisualsApi from "powerbi-visuals-api";
+import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin;
+import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions;
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
 
