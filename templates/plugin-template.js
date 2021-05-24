@@ -3,6 +3,7 @@ module.exports = function (pluginOptions) {
 import powerbiVisualsApi from "powerbi-visuals-api";
 import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin;
 import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions;
+import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
 
@@ -17,6 +18,12 @@ var ${pluginOptions.pluginName}: IVisualPlugin = {
         }
 
         throw 'Visual instance not found';
+    },
+    createModalDialog: (dialogId: string, options: DialogConstructorOptions, initialState: object) => {
+        const dialogRegistry = globalThis.dialogRegistry;
+        if (dialogId in dialogRegistry) {
+            new dialogRegistry[dialogId](options, initialState);
+        }
     },
     custom: true
 };

@@ -1,3 +1,6 @@
+# 2.3.0
+* Added support for CV modal dialog
+
 # 2.2.6
 * Removed `lodash.template` usage;
 
