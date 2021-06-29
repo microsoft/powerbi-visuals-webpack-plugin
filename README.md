@@ -369,13 +369,13 @@ Install webpack-dev-server:
 npm i webpack-dev-server --save-dev
 ```
 
-Add command `"start": "webpack-dev-server"` into `scripts` section of `package.json` :
+Add command `"start": "webpack serve"` into `scripts` section of `package.json` :
 
 ```json
 "scripts": {
     "cert": "pbiviz --install-cert",
     "package": "webpack",
-    "start": "webpack-dev-server"
+    "start": "webpack serve"
 }
 ```
 
