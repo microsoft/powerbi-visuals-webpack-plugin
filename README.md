@@ -301,10 +301,12 @@ Plugin config description
                 analyzerMode: `static`
             }),
             // visual plugin regenerates with the visual source, but it does not require relaunching dev server
-            new webpack.WatchIgnorePlugin([
-                path.join(__dirname, pluginLocation),
-                "./.tmp/**/*.*"
-            ]),
+		    new webpack.WatchIgnorePlugin({
+				paths: [
+					path.join(__dirname, pluginLocation),
+					"./.tmp/**/*.*"
+				]
+			}),
             // custom visuals plugin instance with options
             new PowerBICustomVisualsWebpackPlugin({
                 ...pbivizFile,
