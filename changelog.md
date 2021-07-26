@@ -1,3 +1,6 @@
+# 2.3.1
+* Fixed plugin template for visuals with `powerbi-visuals-api < 3.8.0`
+
 # 2.3.0
 * Added support for CV modal dialog
 

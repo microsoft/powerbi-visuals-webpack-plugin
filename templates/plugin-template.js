@@ -1,9 +1,17 @@
 module.exports = function (pluginOptions) {
-	return `import { ${pluginOptions.visualClass} } from "${pluginOptions.visualSourceLocation}";
+    let generateStrByAPI = (str) => {
+        if (parseFloat(pluginOptions.apiVersion) < parseFloat(`3.8.0`)) {
+            return '';
+        } else {
+            return str;
+        }
+    };
+
+    return `import { ${pluginOptions.visualClass} } from "${pluginOptions.visualSourceLocation}";
 import powerbiVisualsApi from "powerbi-visuals-api";
 import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin;
 import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions;
-import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;
+${generateStrByAPI(`import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;`)}
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
 
@@ -19,12 +27,12 @@ var ${pluginOptions.pluginName}: IVisualPlugin = {
 
         throw 'Visual instance not found';
     },
-    createModalDialog: (dialogId: string, options: DialogConstructorOptions, initialState: object) => {
+    ${generateStrByAPI(`createModalDialog: (dialogId: string, options: DialogConstructorOptions, initialState: object) => {
         const dialogRegistry = globalThis.dialogRegistry;
         if (dialogId in dialogRegistry) {
             new dialogRegistry[dialogId](options, initialState);
         }
-    },
+    },`)}
     custom: true
 };
 
