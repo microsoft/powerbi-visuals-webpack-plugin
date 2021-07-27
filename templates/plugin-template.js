@@ -1,20 +1,23 @@
 module.exports = function (pluginOptions) {
-    let generateStrByAPI = (str) => {
-        if (parseFloat(pluginOptions.apiVersion) < parseFloat(`3.8.0`)) {
-            return '';
-        } else {
-            return str;
-        }
-    };
+	let generateStrByAPI = (str) => {
+		if (parseFloat(pluginOptions.apiVersion) < parseFloat(`3.8.0`)) {
+			return "";
+		} else {
+			return str;
+		}
+	};
 
-    return `import { ${pluginOptions.visualClass} } from "${pluginOptions.visualSourceLocation}";
+	return `import { ${pluginOptions.visualClass} } from "${
+		pluginOptions.visualSourceLocation
+	}";
 import powerbiVisualsApi from "powerbi-visuals-api";
 import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin;
 import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions;
-${generateStrByAPI(`import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;`)}
+${generateStrByAPI(
+	`import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;`
+)}
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
-
 var ${pluginOptions.pluginName}: IVisualPlugin = {
     name: '${pluginOptions.pluginName}',
     displayName: '${pluginOptions.visualDisplayName}',
@@ -24,7 +27,6 @@ var ${pluginOptions.pluginName}: IVisualPlugin = {
         if (${pluginOptions.visualClass}) {
             return new ${pluginOptions.visualClass}(options);
         }
-
         throw 'Visual instance not found';
     },
     ${generateStrByAPI(`createModalDialog: (dialogId: string, options: DialogConstructorOptions, initialState: object) => {
@@ -35,12 +37,12 @@ var ${pluginOptions.pluginName}: IVisualPlugin = {
     },`)}
     custom: true
 };
-
 if (typeof powerbi !== "undefined") {
     powerbi.visuals = powerbi.visuals || {};
     powerbi.visuals.plugins = powerbi.visuals.plugins || {};
-    powerbi.visuals.plugins["${pluginOptions.pluginName}"] = ${pluginOptions.pluginName};
+    powerbi.visuals.plugins["${pluginOptions.pluginName}"] = ${
+		pluginOptions.pluginName
+	};
 }
-
 export default ${pluginOptions.pluginName};`;
 };
