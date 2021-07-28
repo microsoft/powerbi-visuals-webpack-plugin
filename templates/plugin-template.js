@@ -1,9 +1,10 @@
-const { compareVersions } = require("../utils.js");
-const comparedAPI = "3.8.0";
+const compareVersions = require("compare-versions");
 
 module.exports = function (pluginOptions) {
-	let generateStrByAPI = (str) => {
-		if (compareVersions(pluginOptions.apiVersion, comparedAPI)) {
+	let generateStrByAPI = (str, comparedAPI = "3.8.0") => {
+		if (
+			compareVersions.compare(pluginOptions.apiVersion, comparedAPI, ">=")
+		) {
 			return str;
 		} else {
 			return ``;
