@@ -1,25 +1,17 @@
 const compareVersions = require("compare-versions");
 
 module.exports = function (pluginOptions) {
-	let generateStrByAPI = (str, comparedAPI = "3.8.0") => {
-		if (
-			compareVersions.compare(pluginOptions.apiVersion, comparedAPI, ">=")
-		) {
-			return str;
-		} else {
-			return ``;
-		}
-	};
-
 	return `import { ${pluginOptions.visualClass} } from "${
 		pluginOptions.visualSourceLocation
 	}";
 import powerbiVisualsApi from "powerbi-visuals-api";
 import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin;
 import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions;
-${generateStrByAPI(
-	`import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;`
-)}
+${
+	compareVersions.compare(pluginOptions.apiVersion, "3.8.0", ">=")
+		? "import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;"
+		: ""
+}
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
 var ${pluginOptions.pluginName}: IVisualPlugin = {
@@ -33,12 +25,16 @@ var ${pluginOptions.pluginName}: IVisualPlugin = {
         }
         throw 'Visual instance not found';
     },
-    ${generateStrByAPI(`createModalDialog: (dialogId: string, options: DialogConstructorOptions, initialState: object) => {
+    ${
+		compareVersions.compare(pluginOptions.apiVersion, "3.8.0", ">=")
+			? `createModalDialog: (dialogId: string, options: DialogConstructorOptions, initialState: object) => {
         const dialogRegistry = globalThis.dialogRegistry;
         if (dialogId in dialogRegistry) {
             new dialogRegistry[dialogId](options, initialState);
         }
-    },`)}
+    },`
+			: ""
+	}
     custom: true
 };
 if (typeof powerbi !== "undefined") {

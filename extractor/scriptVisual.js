@@ -5,8 +5,8 @@ const { ENCODING } = require("../constants");
 const MAX_IMPORT_MODULES = 100;
 
 const getContent = async (filePath) => {
-	// eslint-disable-next-line prettier/prettier
-	const Pattern4FileName = /^[^#\n]*source\s*?\(\s*?['|"]([^()'"]*)['|"]\s*?\)/m;
+	const Pattern4FileName =
+		/^[^#\n]*source\s*?\(\s*?['|"]([^()'"]*)['|"]\s*?\)/m;
 
 	return fs.readFile(filePath, ENCODING).then(async (content) => {
 		let replaceCount = 0;
