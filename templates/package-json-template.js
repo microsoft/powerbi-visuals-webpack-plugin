@@ -2,6 +2,17 @@ module.exports = function (templateOptions) {
 	return `{
     "version": ${JSON.stringify(templateOptions.visualData.version)},
     "author": ${JSON.stringify(templateOptions.authorData)},
+    "build environment": {
+        "tools version": ${JSON.stringify(
+			templateOptions.environment.toolsVersion
+		)},
+        "operating system": ${JSON.stringify(
+			templateOptions.environment.operatingSystem
+		)},
+        "node version": ${JSON.stringify(
+			templateOptions.environment.nodeVersion
+		)}
+    },
     "resources": [
         {
             "resourceId": "rId0",

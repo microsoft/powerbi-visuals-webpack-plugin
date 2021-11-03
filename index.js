@@ -80,8 +80,15 @@ class PowerBICustomVisualsWebpackPlugin {
 			pluginLocation: path.join(".tmp", "precompile", "visualPlugin.ts"),
 			compression: 0, // no compression,
 			toolsVersion: null,
+			env: null,
 		};
 
+		this.needAditionalRun = false;
+		this.additionalAssets = {
+			jsFile: null,
+			pbivizJSON: null,
+			status: null,
+		};
 		this._name = "PowerBICustomVisualsWebpackPlugin";
 		this.options = Object.assign(defaultOptions, options);
 		this.options.pluginLocation = path.normalize(
@@ -107,6 +114,39 @@ class PowerBICustomVisualsWebpackPlugin {
 				});
 		});
 
+		compiler.hooks.thisCompilation.tap(this._name, (compilation) => {
+			compilation.hooks.needAdditionalPass.tap(this._name, () => {
+				if (!this.needAditionalRun) {
+					logger.info("Need additional run");
+					this.needAditionalRun = true;
+					return true;
+				}
+				// if it is always true, will lead to infinite loop!
+			});
+			compilation.hooks.processAssets.tap(
+				{
+					name: this._name,
+					stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+				},
+				() => {
+					if (this.needAditionalRun) {
+						compilation.emitAsset(
+							"pbiviz.json",
+							new RawSource(this.additionalAssets.pbivizJSON)
+						);
+						compilation.emitAsset(
+							"status",
+							new RawSource(this.additionalAssets.status)
+						);
+						compilation.updateAsset(
+							"visual.js",
+							new RawSource(this.additionalAssets.jsFile)
+						);
+					}
+				}
+			);
+		});
+
 		compiler.hooks.beforeRun.tapAsync(
 			this._name,
 			(compilationParams, callback) => {
@@ -117,6 +157,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		compiler.hooks.watchRun.tapAsync(
 			this._name,
 			(compilation, callback) => {
+				this.needAditionalRun = false;
 				this._beforeCompile(callback);
 			}
 		);
@@ -158,9 +199,8 @@ class PowerBICustomVisualsWebpackPlugin {
 		config.visual.guid = `${this.options.visual.guid}${
 			options.devMode ? DEBUG : ""
 		}`;
-		compilation.assets["pbiviz.json"] = new RawSource(
-			JSON.stringify(config)
-		);
+
+		this.additionalAssets.pbivizJSON = JSON.stringify(config, null, 2);
 
 		// update status file for debug server
 		this.addStatusFile(compilation);
@@ -233,6 +273,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		jsContent,
 		cssContent
 	) {
+		this.additionalAssets.jsFile = jsContent;
 		return {
 			visual: {
 				name: this.options.visual.name,
@@ -257,6 +298,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			},
 			visualEntryPoint: "",
 			toolsVersion: this.options.toolsVersion,
+			env: this.options.env,
 		};
 	}
 
@@ -282,15 +324,21 @@ class PowerBICustomVisualsWebpackPlugin {
 		return errors;
 	}
 
-	addStatusFile(compilation) {
+	addStatusFile() {
 		const status = `${new Date().getTime()}\n${this.options.visual.guid}${
 			this.options.devMode ? DEBUG : ""
 		}`;
-		compilation.assets["status"] = new RawSource(status);
+
+		this.additionalAssets.status = status;
 	}
 
 	async generatePackageJson(visualConfigProd) {
 		let templateOptions = {
+			environment: {
+				toolsVersion: visualConfigProd.env.toolsVersion,
+				operatingSystem: visualConfigProd.env.operatingSystem,
+				nodeVersion: visualConfigProd.env.nodeVersion,
+			},
 			visualData: visualConfigProd.visual || {},
 			authorData: visualConfigProd.author || {
 				name: "",
