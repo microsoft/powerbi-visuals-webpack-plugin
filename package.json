@@ -12,6 +12,10 @@
   ],
   "author": "Microsoft",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/powerbi-visuals-webpack-plugin.git"
+  },
   "scripts": {
     "test": "mocha test/*.test.js",
     "pretty": "prettier --loglevel warn --write \"*.js\"",
