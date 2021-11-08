@@ -79,7 +79,6 @@ class PowerBICustomVisualsWebpackPlugin {
 			visualSourceLocation: "",
 			pluginLocation: path.join(".tmp", "precompile", "visualPlugin.ts"),
 			compression: 0, // no compression,
-			toolsVersion: null,
 			env: null,
 		};
 
@@ -297,7 +296,6 @@ class PowerBICustomVisualsWebpackPlugin {
 				iconBase64: this.options.iconImage,
 			},
 			visualEntryPoint: "",
-			toolsVersion: this.options.toolsVersion,
 			env: this.options.env,
 		};
 	}
@@ -337,6 +335,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			environment: {
 				toolsVersion: visualConfigProd.env.toolsVersion,
 				operatingSystem: visualConfigProd.env.operatingSystem,
+				osReleaseVersion: visualConfigProd.env.osReleaseVersion,
 				nodeVersion: visualConfigProd.env.nodeVersion,
 			},
 			visualData: visualConfigProd.visual || {},
