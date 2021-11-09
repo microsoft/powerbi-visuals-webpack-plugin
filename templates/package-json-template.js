@@ -2,11 +2,17 @@ module.exports = function (templateOptions) {
 	let res = {
 		version: templateOptions.visualData.version,
 		author: templateOptions.authorData,
-		"build environment": {
-			"tools version": templateOptions.environment.toolsVersion,
-			"operating system": `${templateOptions.environment.operatingSystem} - ${templateOptions.environment.osReleaseVersion}`,
-			"node version": templateOptions.environment.nodeVersion,
-		},
+		"build environment": templateOptions.environment
+			? {
+					"tools version": `${templateOptions.environment.toolsVersion}`,
+					"node version": `${templateOptions.environment.nodeVersion}`,
+					"operating system": {
+						platform: `${templateOptions.environment.operatingSystem}`,
+						version: `${templateOptions.environment.osVersion}`,
+						release: `${templateOptions.environment.osReleaseVersion}`,
+					},
+			  }
+			: "is not defined",
 		resources: [
 			{
 				resourceId: "rId0",

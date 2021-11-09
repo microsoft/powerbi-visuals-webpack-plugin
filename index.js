@@ -332,12 +332,15 @@ class PowerBICustomVisualsWebpackPlugin {
 
 	async generatePackageJson(visualConfigProd) {
 		let templateOptions = {
-			environment: {
-				toolsVersion: visualConfigProd.env.toolsVersion,
-				operatingSystem: visualConfigProd.env.operatingSystem,
-				osReleaseVersion: visualConfigProd.env.osReleaseVersion,
-				nodeVersion: visualConfigProd.env.nodeVersion,
-			},
+			environment: visualConfigProd.env
+				? {
+						toolsVersion: visualConfigProd.env.toolsVersion,
+						operatingSystem: visualConfigProd.env.operatingSystem,
+						osVersion: visualConfigProd.env.osVersion,
+						osReleaseVersion: visualConfigProd.env.osReleaseVersion,
+						nodeVersion: visualConfigProd.env.nodeVersion,
+				  }
+				: null,
 			visualData: visualConfigProd.visual || {},
 			authorData: visualConfigProd.author || {
 				name: "",
