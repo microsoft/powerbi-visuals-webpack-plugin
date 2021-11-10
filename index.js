@@ -335,7 +335,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			environment: visualConfigProd.env
 				? {
 						toolsVersion: visualConfigProd.env.toolsVersion,
-						operatingSystem: visualConfigProd.env.operatingSystem,
+						osPlatform: visualConfigProd.env.osPlatform,
 						osVersion: visualConfigProd.env.osVersion,
 						osReleaseVersion: visualConfigProd.env.osReleaseVersion,
 						nodeVersion: visualConfigProd.env.nodeVersion,
