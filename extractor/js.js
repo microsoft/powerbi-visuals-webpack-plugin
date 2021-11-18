@@ -1,5 +1,4 @@
 const fs = require("fs-extra");
-const RawSource = require("webpack-sources/lib/RawSource");
 
 const { ENCODING } = require("../constants");
 const logger = require("../logger");
@@ -15,13 +14,12 @@ const appendExternalJS = async function (externalJS) {
 };
 
 module.exports = async function (options, compilation) {
-	let path, chunkContent;
+	let chunkContent;
 	const sourcePromises = [];
 
 	for (let asset in compilation.assets) {
 		const extension = asset.split(".").pop();
 		if (extension === "js") {
-			path = asset;
 			chunkContent = compilation.assets[asset].source();
 			break;
 		}
@@ -35,7 +33,6 @@ module.exports = async function (options, compilation) {
 
 	return Promise.all(sourcePromises).then((chunks) => {
 		const content = chunks.join("\n");
-		compilation.assets[path] = new RawSource(content);
 		return content;
 	});
 };
