@@ -2,6 +2,10 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 3.0.1
+
+* update visual plugin template to support TS strict mode 
+
 ## 3.0.0
 
 * refactored assets compilation due to latest webpack rules

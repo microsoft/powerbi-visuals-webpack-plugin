@@ -19,7 +19,7 @@ var ${pluginOptions.pluginName}: IVisualPlugin = {
     displayName: '${pluginOptions.visualDisplayName}',
     class: '${pluginOptions.visualClass}',
     apiVersion: '${pluginOptions.apiVersion}',
-    create: (options: VisualConstructorOptions) => {
+    create: (options?: VisualConstructorOptions) => {
         if (${pluginOptions.visualClass}) {
             return new ${pluginOptions.visualClass}(options);
         }
@@ -28,7 +28,7 @@ var ${pluginOptions.pluginName}: IVisualPlugin = {
     ${
 		compareVersions.compare(pluginOptions.apiVersion, "3.8.0", ">=")
 			? `createModalDialog: (dialogId: string, options: DialogConstructorOptions, initialState: object) => {
-        const dialogRegistry = globalThis.dialogRegistry;
+        const dialogRegistry = (<any>globalThis).dialogRegistry;
         if (dialogId in dialogRegistry) {
             new dialogRegistry[dialogId](options, initialState);
         }
