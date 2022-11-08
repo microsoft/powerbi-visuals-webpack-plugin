@@ -22,7 +22,7 @@ jobs:
         TAG_NAME: ${{ github.event.release.tag_name }}
     - name: Run npm install
       run: npm i
-    - run: zip -r release.zip . -x '.*'
+    - run: zip -r release.zip . -x '.*' 'node_modules/*'
     - name: Upload production artifacts
       run: |
         gh release upload $TAG_NAME "release.zip#release"
