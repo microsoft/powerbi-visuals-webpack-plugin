@@ -47,7 +47,7 @@ class PowerBICustomVisualsWebpackPlugin {
 				displayName: name,
 				guid: `${name}_${new Date().getTime()}_${Math.random()
 					.toString()
-					.substr(2)}`,
+					.substring(2)}`,
 				visualClassName: "Visual",
 				version: "1.0.0.0",
 				description: "",
@@ -79,15 +79,15 @@ class PowerBICustomVisualsWebpackPlugin {
 			visualSourceLocation: "",
 			pluginLocation: path.join(".tmp", "precompile", "visualPlugin.ts"),
 			compression: 0, // no compression,
-			env: null,
+			toolsVersion: null,
 		};
 
-		this.needAditionalRun = false;
-		this.additionalAssets = {
-			jsFile: null,
-			pbivizJSON: null,
-			status: null,
-		};
+		this.assets = {
+			"visual.css": null,
+			"visual.js": null,
+			"pbiviz.json": null,
+			"status": null,
+		}
 		this._name = "PowerBICustomVisualsWebpackPlugin";
 		this.options = Object.assign(defaultOptions, options);
 		this.options.pluginLocation = path.normalize(
@@ -101,49 +101,21 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	apply(compiler) {
-		compiler.hooks.emit.tapAsync(this._name, (compilation, callback) => {
-			logger.info("Start packaging...");
-			this._emit(compilation)
-				.then(() => {
-					logger.info("Finish packaging");
-					callback();
-				})
-				.catch((ex) => {
-					[].concat(ex).map((ex) => logger.error(ex.message));
-				});
-		});
-
 		compiler.hooks.thisCompilation.tap(this._name, (compilation) => {
-			compilation.hooks.needAdditionalPass.tap(this._name, () => {
-				if (!this.needAditionalRun) {
-					logger.info("Need additional run");
-					this.needAditionalRun = true;
-					return true;
-				}
-				// if it is always true, will lead to infinite loop!
-			});
-			compilation.hooks.processAssets.tap(
+			logger.info("Start packaging...");
+			compilation.hooks.processAssets.tapPromise(
 				{
 					name: this._name,
-					stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+					stage: compilation.PROCESS_ASSETS_STAGE_REPORT
 				},
-				() => {
-					if (this.needAditionalRun) {
-						compilation.emitAsset(
-							"pbiviz.json",
-							new RawSource(this.additionalAssets.pbivizJSON)
-						);
-						compilation.emitAsset(
-							"status",
-							new RawSource(this.additionalAssets.status)
-						);
-						compilation.updateAsset(
-							"visual.js",
-							new RawSource(this.additionalAssets.jsFile)
-						);
-					}
-				}
-			);
+				async () => this._compilation(compilation)
+					.then(() => {
+						logger.info("Finish packaging");
+					})
+					.catch((ex) => {
+						[].concat(ex).map((ex) => logger.error(ex.message));
+					})
+			)
 		});
 
 		compiler.hooks.beforeRun.tapAsync(
@@ -156,13 +128,12 @@ class PowerBICustomVisualsWebpackPlugin {
 		compiler.hooks.watchRun.tapAsync(
 			this._name,
 			(compilation, callback) => {
-				this.needAditionalRun = false;
 				this._beforeCompile(callback);
 			}
 		);
 	}
 
-	async _emit(compilation) {
+	async _compilation(compilation) {
 		const options = this.options;
 
 		const config = await Promise.all([
@@ -199,14 +170,31 @@ class PowerBICustomVisualsWebpackPlugin {
 			options.devMode ? DEBUG : ""
 		}`;
 
-		this.additionalAssets.pbivizJSON = JSON.stringify(config, null, 2);
+		this.assets["pbiviz.json"] = JSON.stringify(config, null, 2)
 
 		// update status file for debug server
-		this.addStatusFile(compilation);
+		this.addStatusFile();
 
 		if (!this.options.devMode) {
 			await this.generateResources(config);
 		}
+		
+		this.updateAssets(compilation)
+	}
+
+	updateAssets(compilation) {
+		Object.keys(this.assets).forEach(name => {
+			const value = this.assets[name]
+			if(!value){
+				return
+			}
+
+			if(compilation.getAsset(name)){
+				compilation.updateAsset(name, new RawSource(value))
+			} else {
+				compilation.emitAsset(name, new RawSource(value))
+			}
+		})
 	}
 
 	async _beforeCompile(callback) {
@@ -272,7 +260,9 @@ class PowerBICustomVisualsWebpackPlugin {
 		jsContent,
 		cssContent
 	) {
-		this.additionalAssets.jsFile = jsContent;
+		this.assets["visual.css"] = cssContent;
+		this.assets["visual.js"] = jsContent;
+
 		return {
 			visual: {
 				name: this.options.visual.name,
@@ -296,7 +286,6 @@ class PowerBICustomVisualsWebpackPlugin {
 				iconBase64: this.options.iconImage,
 			},
 			visualEntryPoint: "",
-			env: this.options.env,
 		};
 	}
 
@@ -326,21 +315,11 @@ class PowerBICustomVisualsWebpackPlugin {
 		const status = `${new Date().getTime()}\n${this.options.visual.guid}${
 			this.options.devMode ? DEBUG : ""
 		}`;
-
-		this.additionalAssets.status = status;
+		this.assets["status"] = status
 	}
 
 	async generatePackageJson(visualConfigProd) {
 		let templateOptions = {
-			environment: visualConfigProd.env
-				? {
-						toolsVersion: visualConfigProd.env.toolsVersion,
-						osPlatform: visualConfigProd.env.osPlatform,
-						osVersion: visualConfigProd.env.osVersion,
-						osReleaseVersion: visualConfigProd.env.osReleaseVersion,
-						nodeVersion: visualConfigProd.env.nodeVersion,
-				  }
-				: null,
 			visualData: visualConfigProd.visual || {},
 			authorData: visualConfigProd.author || {
 				name: "",

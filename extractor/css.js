@@ -1,5 +1,4 @@
 const fs = require("fs-extra");
-const RawSource = require("webpack-sources/lib/RawSource");
 
 const { ENCODING } = require("../constants");
 
@@ -20,7 +19,6 @@ module.exports = async function (options, { assets }) {
 				encoding: ENCODING,
 			});
 		} else {
-			assets["visual.css"] = new RawSource("");
 			result = Promise.resolve("");
 		}
 	}
