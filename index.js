@@ -86,8 +86,8 @@ class PowerBICustomVisualsWebpackPlugin {
 			"visual.css": null,
 			"visual.js": null,
 			"pbiviz.json": null,
-			"status": null,
-		}
+			status: null,
+		};
 		this._name = "PowerBICustomVisualsWebpackPlugin";
 		this.options = Object.assign(defaultOptions, options);
 		this.options.pluginLocation = path.normalize(
@@ -106,16 +106,17 @@ class PowerBICustomVisualsWebpackPlugin {
 			compilation.hooks.processAssets.tapPromise(
 				{
 					name: this._name,
-					stage: compilation.PROCESS_ASSETS_STAGE_REPORT
+					stage: compilation.PROCESS_ASSETS_STAGE_REPORT,
 				},
-				async () => this._compilation(compilation)
-					.then(() => {
-						logger.info("Finish packaging");
-					})
-					.catch((ex) => {
-						[].concat(ex).map((ex) => logger.error(ex.message));
-					})
-			)
+				async () =>
+					this._compilation(compilation)
+						.then(() => {
+							logger.info("Finish packaging");
+						})
+						.catch((ex) => {
+							[].concat(ex).map((ex) => logger.error(ex.message));
+						})
+			);
 		});
 
 		compiler.hooks.beforeRun.tapAsync(
@@ -170,7 +171,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			options.devMode ? DEBUG : ""
 		}`;
 
-		this.assets["pbiviz.json"] = JSON.stringify(config, null, 2)
+		this.assets["pbiviz.json"] = JSON.stringify(config, null, 2);
 
 		// update status file for debug server
 		this.addStatusFile();
@@ -178,23 +179,23 @@ class PowerBICustomVisualsWebpackPlugin {
 		if (!this.options.devMode) {
 			await this.generateResources(config);
 		}
-		
+
 		this.updateAssets(compilation)
 	}
 
 	updateAssets(compilation) {
-		Object.keys(this.assets).forEach(name => {
-			const value = this.assets[name]
-			if(!value){
-				return
+		Object.keys(this.assets).forEach((name) => {
+			const value = this.assets[name];
+			if(!value) {
+				return;
 			}
 
-			if(compilation.getAsset(name)){
-				compilation.updateAsset(name, new RawSource(value))
+			if(compilation.getAsset(name)) {
+				compilation.updateAsset(name, new RawSource(value));
 			} else {
-				compilation.emitAsset(name, new RawSource(value))
-			}
-		})
+				compilation.emitAsset(name, new RawSource(value));
+			};
+		});
 	}
 
 	async _beforeCompile(callback) {
@@ -315,7 +316,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		const status = `${new Date().getTime()}\n${this.options.visual.guid}${
 			this.options.devMode ? DEBUG : ""
 		}`;
-		this.assets["status"] = status
+		this.assets["status"] = status;
 	}
 
 	async generatePackageJson(visualConfigProd) {
