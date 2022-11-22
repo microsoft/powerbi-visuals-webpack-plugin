@@ -180,21 +180,21 @@ class PowerBICustomVisualsWebpackPlugin {
 			await this.generateResources(config);
 		}
 
-		this.updateAssets(compilation)
+		this.updateAssets(compilation);
 	}
 
 	updateAssets(compilation) {
 		Object.keys(this.assets).forEach((name) => {
 			const value = this.assets[name];
-			if(!value) {
+			if (!value) {
 				return;
 			}
 
-			if(compilation.getAsset(name)) {
+			if (compilation.getAsset(name)) {
 				compilation.updateAsset(name, new RawSource(value));
 			} else {
 				compilation.emitAsset(name, new RawSource(value));
-			};
+			}
 		});
 	}
 
