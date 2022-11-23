@@ -2,6 +2,12 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 3.1.1
+
+* fixed double webpack compilation
+* removed non-personal environment logging
+* updated deprecated methods
+
 ## 3.0.0
 
 * refactored assets compilation due to latest webpack rules
