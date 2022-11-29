@@ -2,16 +2,20 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 3.1.2
+
+* Fixed bug when css asset wasn't generated
+
 ## 3.1.1
 
-* fixed double webpack compilation
-* removed non-personal environment logging
-* updated deprecated methods
+* Fixed double webpack compilation
+* Removed non-personal environment logging
+* Updated deprecated methods
 
 ## 3.0.0
 
-* refactored assets compilation due to latest webpack rules
-* added non-personal environment logging
+* Refactored assets compilation due to latest webpack rules
+* Added non-personal environment logging
 
 ## 2.3.1
 

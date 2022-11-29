@@ -13,14 +13,14 @@ const appendExternalJS = async function (externalJS) {
 	).then((results) => results.join(""));
 };
 
-module.exports = async function (options, compilation) {
+module.exports = async function (options, { assets }) {
 	let chunkContent;
 	const sourcePromises = [];
 
-	for (let asset in compilation.assets) {
+	for (let asset in assets) {
 		const extension = asset.split(".").pop();
 		if (extension === "js") {
-			chunkContent = compilation.assets[asset].source();
+			chunkContent = assets[asset].source();
 			break;
 		}
 	}
