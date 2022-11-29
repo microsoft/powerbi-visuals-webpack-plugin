@@ -186,7 +186,7 @@ class PowerBICustomVisualsWebpackPlugin {
 	updateAssets(compilation) {
 		Object.keys(this.assets).forEach((name) => {
 			const value = this.assets[name];
-			if (!value) {
+			if (value === undefined) {
 				return;
 			}
 
