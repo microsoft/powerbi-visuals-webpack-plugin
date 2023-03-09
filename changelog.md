@@ -2,6 +2,13 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 3.2.0
+* Fixed broken minification in pbiviz.json
+* Updated packages
+### **⚠ Breaking Chages**
+* Now `pbiviz.json` is not a webpack asset
+* **eExternalJS** and **cssStyles** options are **deprecated**
+
 ## 3.1.2
 
 * Fixed bug when css asset wasn't generated
