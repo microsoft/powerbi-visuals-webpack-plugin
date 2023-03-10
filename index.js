@@ -419,14 +419,14 @@ class PowerBICustomVisualsWebpackPlugin {
 				`${visualConfigProd.visual.guid}.${visualConfigProd.visual.version}.pbiviz`
 			);
 			await fs.ensureDir(dropPath);
-			if (this.options.compression !== "0") {
-				logger.info("Package compression enabled");
-			} else {
-				logger.info("Package compression disabled");
-			}
+			const isCompressionEnabled = this.options.compression !== "0";
+			logger.info(
+				`Package compression ${
+					isCompressionEnabled ? "enabled" : "disabled"
+				}`
+			);
 			const input = zip.generateNodeStream({
-				compression:
-					this.options.compression !== "0" ? "DEFLATE" : "STORE",
+				compression: isCompressionEnabled ? "DEFLATE" : "STORE",
 				compressionOptions: {
 					level: this.options.compression,
 				},
