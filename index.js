@@ -180,12 +180,9 @@ class PowerBICustomVisualsWebpackPlugin {
 			await this.generateResources(config);
 		}
 
-		await fs.outputFile(
+		await this.outputFile(
 			path.join(".tmp", "drop", "pbiviz.json"),
-			JSON.stringify(config),
-			{
-				encoding: ENCODING,
-			}
+			JSON.stringify(config)
 		);
 	}
 
@@ -225,7 +222,21 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	async generateVisualPlugin() {
-		const pluginOptions = {
+		const pluginTs = pluginTemplate(this.getPluginOptions());
+		const pluginLocation = path.join(
+			process.cwd(),
+			this.options.pluginLocation
+		);
+		const oldPluginTs = (await fs.readFile(pluginLocation)) || "";
+
+		// write file if only changes in visualPlugin
+		if (oldPluginTs.toString() !== pluginTs.toString()) {
+			return await this.outputFile(pluginLocation, pluginTs);
+		}
+	}
+
+	getPluginOptions() {
+		return {
 			pluginName: `${this.options.visual.guid}${
 				this.options.devMode ? DEBUG : ""
 			}`,
@@ -236,31 +247,6 @@ class PowerBICustomVisualsWebpackPlugin {
 			apiVersion: this.options.apiVersion,
 			visualSourceLocation: this.options.visualSourceLocation,
 		};
-		const pluginTs = pluginTemplate(pluginOptions);
-		let pluginFolderPath = this.options.pluginLocation.split(path.sep);
-		pluginFolderPath.pop();
-		let pluginFolder = path.join(
-			process.cwd(),
-			pluginFolderPath.join(path.sep)
-		);
-		await fs.ensureDir(pluginFolder);
-		// write file if only changes in visualPlugin
-		let oldPluginTs = "";
-		if (
-			await fs.exists(
-				path.join(process.cwd(), this.options.pluginLocation)
-			)
-		) {
-			oldPluginTs = await fs.readFile(
-				path.join(process.cwd(), this.options.pluginLocation)
-			);
-		}
-		if (oldPluginTs.toString() !== pluginTs.toString()) {
-			return await fs.writeFile(
-				path.join(process.cwd(), this.options.pluginLocation),
-				pluginTs
-			);
-		}
 	}
 
 	getVisualConfig(
@@ -343,54 +329,39 @@ class PowerBICustomVisualsWebpackPlugin {
 
 		prodConfig.visual.guid = `${config.visual.guid}`; // prod version of visual should not contaings _DEBUG postfix
 		prodConfig.visual.gitHubUrl = prodConfig.visual.gitHubUrl || "";
-		let packageJSONContent = await this.generatePackageJson(prodConfig);
 		prodConfig.externalJS = [];
 		prodConfig.assets = {
 			icon: "assets/icon.png",
 		};
 
+		const packageJSONContent = await this.generatePackageJson(prodConfig);
 		operations.push(
-			fs.outputFile(
+			this.outputFile(
 				path.join(dropPath, "package.json"),
-				packageJSONContent,
-				{
-					encoding: ENCODING,
-				}
+				packageJSONContent
 			)
 		);
 
 		if (this.options.generateResources) {
 			operations.push(
-				fs.outputFile(
+				this.outputFile(
 					path.join(resourcePath, "visual.js"),
-					config.content.js,
-					{
-						encoding: ENCODING,
-					}
+					config.content.js
 				),
-				fs.outputFile(
+				this.outputFile(
 					path.join(
 						resourcePath,
 						`${prodConfig.visual.guid}.pbiviz.json`
 					),
-					JSON.stringify(prodConfig),
-					{
-						encoding: ENCODING,
-					}
+					JSON.stringify(prodConfig)
 				),
-				fs.outputFile(
+				this.outputFile(
 					path.join(resourcePath, "visual.prod.js"),
-					config.content.js,
-					{
-						encoding: ENCODING,
-					}
+					config.content.js
 				),
-				fs.outputFile(
+				this.outputFile(
 					path.join(resourcePath, "visual.prod.css"),
-					config.content.css,
-					{
-						encoding: ENCODING,
-					}
+					config.content.css
 				)
 			);
 		}
@@ -408,29 +379,31 @@ class PowerBICustomVisualsWebpackPlugin {
 
 	async generatePbiviz(visualConfigProd, packageJSONContent, dropPath) {
 		return new Promise(async (resolve, reject) => {
+			const { guid, version } = visualConfigProd.visual;
 			const zip = new JSZip();
+
 			zip.file("package.json", packageJSONContent);
 			zip.folder("resources").file(
-				`${visualConfigProd.visual.guid}.pbiviz.json`,
+				`${guid}.pbiviz.json`,
 				JSON.stringify(visualConfigProd)
 			);
-			const outPath = path.join(
-				dropPath,
-				`${visualConfigProd.visual.guid}.${visualConfigProd.visual.version}.pbiviz`
-			);
-			await fs.ensureDir(dropPath);
+
+			const outPath = path.join(dropPath, `${guid}.${version}.pbiviz`);
 			const isCompressionEnabled = this.options.compression !== "0";
-			logger.info(
-				`Package compression ${
-					isCompressionEnabled ? "enabled" : "disabled"
-				}`
-			);
 			const input = zip.generateNodeStream({
 				compression: isCompressionEnabled ? "DEFLATE" : "STORE",
 				compressionOptions: {
 					level: this.options.compression,
 				},
 			});
+
+			logger.info(
+				`Package compression ${
+					isCompressionEnabled ? "enabled" : "disabled"
+				}`
+			);
+
+			await fs.ensureDir(dropPath);
 			const out = fs.createWriteStream(outPath, {
 				flags: "w",
 			});
@@ -446,6 +419,10 @@ class PowerBICustomVisualsWebpackPlugin {
 					resolve();
 				});
 		});
+	}
+
+	outputFile(filePath, content) {
+		return fs.outputFile(filePath, content, { encoding: ENCODING });
 	}
 }
 
