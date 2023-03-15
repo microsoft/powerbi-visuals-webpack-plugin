@@ -10,8 +10,6 @@ const logger = require("./logger");
 const getDependencies = require("./extractor/dependencies");
 const getCapabilities = require("./extractor/capabilities");
 const scriptVisual = require("./extractor/scriptVisual");
-const getJsContent = require("./extractor/js");
-const getCssContent = require("./extractor/css");
 const getLocalization = require("./extractor/localization");
 const pluginTemplate = require("./templates/plugin-template");
 const jsonTemplate = require("./templates/package-json-template");
@@ -21,7 +19,7 @@ const DEBUG = "_DEBUG";
 const base64Img = (filepath) => {
 	let imageAsBase64 = fs.readFileSync(filepath, "base64"),
 		defaultExt = "png",
-		extName = path.extname(filepath).substr(1) || defaultExt;
+		extName = path.extname(filepath).substring(1) || defaultExt;
 
 	const extToMIME = {
 		svg: "svg+xml",
@@ -47,7 +45,7 @@ class PowerBICustomVisualsWebpackPlugin {
 				displayName: name,
 				guid: `${name}_${new Date().getTime()}_${Math.random()
 					.toString()
-					.substr(2)}`,
+					.substring(2)}`,
 				visualClassName: "Visual",
 				version: "1.0.0.0",
 				description: "",
@@ -79,7 +77,6 @@ class PowerBICustomVisualsWebpackPlugin {
 			visualSourceLocation: "",
 			pluginLocation: path.join(".tmp", "precompile", "visualPlugin.ts"),
 			compression: 0, // no compression,
-			toolsVersion: null,
 		};
 
 		this._name = "PowerBICustomVisualsWebpackPlugin";
@@ -95,9 +92,22 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	apply(compiler) {
-		compiler.hooks.emit.tapAsync(this._name, (compilation, callback) => {
+		compiler.hooks.thisCompilation.tap(this._name, (compilation) => {
 			logger.info("Start packaging...");
-			this._emit(compilation)
+			compilation.hooks.processAssets.tapPromise(
+				{
+					name: this._name,
+					stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+				},
+				() =>
+					this.generateStatusAsset(compilation).catch((ex) => {
+						[].concat(ex).map((ex) => logger.error(ex.message));
+					})
+			);
+		});
+
+		compiler.hooks.emit.tapAsync(this._name, (compilation, callback) => {
+			this.afterCompilation(compilation)
 				.then(() => {
 					logger.info("Finish packaging");
 					callback();
@@ -122,7 +132,15 @@ class PowerBICustomVisualsWebpackPlugin {
 		);
 	}
 
-	async _emit(compilation) {
+	async generateStatusAsset(compilation) {
+		const status = `${new Date().getTime()}\n${this.options.visual.guid}${
+			this.options.devMode ? DEBUG : ""
+		}`;
+
+		compilation.emitAsset("status", new RawSource(status));
+	}
+
+	async afterCompilation(compilation) {
 		const options = this.options;
 
 		const config = await Promise.all([
@@ -131,16 +149,14 @@ class PowerBICustomVisualsWebpackPlugin {
 			getCapabilities(options).then((capabilities) =>
 				scriptVisual.patchCababilities(options, capabilities)
 			),
-			getJsContent(options, compilation),
-			getCssContent(options, compilation),
+			this.getAssetsContent(compilation.assets),
 		])
 			.then(
 				([
 					stringResources,
 					dependencies,
 					capabilities,
-					jsContent,
-					cssContent,
+					{ jsContent, cssContent },
 				]) =>
 					this.getVisualConfig(
 						stringResources,
@@ -155,23 +171,41 @@ class PowerBICustomVisualsWebpackPlugin {
 			});
 
 		if (!config.dependencies) delete config.dependencies; //delete parameter with null value
+
 		config.visual.guid = `${this.options.visual.guid}${
 			options.devMode ? DEBUG : ""
 		}`;
-		compilation.assets["pbiviz.json"] = new RawSource(
-			JSON.stringify(config)
-		);
-
-		// update status file for debug server
-		this.addStatusFile(compilation);
 
 		if (!this.options.devMode) {
 			await this.generateResources(config);
 		}
+
+		await this.outputFile(
+			path.join(".tmp", "drop", "pbiviz.json"),
+			JSON.stringify(config)
+		);
+	}
+
+	getAssetsContent(assets) {
+		let assetsContent = {};
+		for (let asset in assets) {
+			const extension = asset.split(".").pop();
+			const content = assets[asset].source();
+
+			if (extension === "js") {
+				assetsContent.jsContent = content;
+			} else if (extension === "css") {
+				assetsContent.cssContent = content;
+			}
+		}
+		return assetsContent;
 	}
 
 	async _beforeCompile(callback) {
 		if (!this.options.modules) callback();
+		if (this.options.externalJS && this.options.externalJS.length) {
+			throw new Error("externalJS option is not supported anymore");
+		}
 		if (this.options.generatePlugin) {
 			logger.info("Start preparing plugin template");
 			await this.generateVisualPlugin()
@@ -188,7 +222,21 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	async generateVisualPlugin() {
-		const pluginOptions = {
+		const pluginTs = pluginTemplate(this.getPluginOptions());
+		const pluginLocation = path.join(
+			process.cwd(),
+			this.options.pluginLocation
+		);
+		const oldPluginTs = (await fs.readFile(pluginLocation)) || "";
+
+		// write file if only changes in visualPlugin
+		if (oldPluginTs.toString() !== pluginTs.toString()) {
+			return await this.outputFile(pluginLocation, pluginTs);
+		}
+	}
+
+	getPluginOptions() {
+		return {
 			pluginName: `${this.options.visual.guid}${
 				this.options.devMode ? DEBUG : ""
 			}`,
@@ -199,31 +247,6 @@ class PowerBICustomVisualsWebpackPlugin {
 			apiVersion: this.options.apiVersion,
 			visualSourceLocation: this.options.visualSourceLocation,
 		};
-		const pluginTs = pluginTemplate(pluginOptions);
-		let pluginFolderPath = this.options.pluginLocation.split(path.sep);
-		pluginFolderPath.pop();
-		let pluginFolder = path.join(
-			process.cwd(),
-			pluginFolderPath.join(path.sep)
-		);
-		await fs.ensureDir(pluginFolder);
-		// write file if only changes in visualPlugin
-		let oldPluginTs = "";
-		if (
-			await fs.exists(
-				path.join(process.cwd(), this.options.pluginLocation)
-			)
-		) {
-			oldPluginTs = await fs.readFile(
-				path.join(process.cwd(), this.options.pluginLocation)
-			);
-		}
-		if (oldPluginTs.toString() !== pluginTs.toString()) {
-			return await fs.writeFile(
-				path.join(process.cwd(), this.options.pluginLocation),
-				pluginTs
-			);
-		}
 	}
 
 	getVisualConfig(
@@ -256,7 +279,6 @@ class PowerBICustomVisualsWebpackPlugin {
 				iconBase64: this.options.iconImage,
 			},
 			visualEntryPoint: "",
-			toolsVersion: this.options.toolsVersion,
 		};
 	}
 
@@ -280,13 +302,6 @@ class PowerBICustomVisualsWebpackPlugin {
 		}
 
 		return errors;
-	}
-
-	addStatusFile(compilation) {
-		const status = `${new Date().getTime()}\n${this.options.visual.guid}${
-			this.options.devMode ? DEBUG : ""
-		}`;
-		compilation.assets["status"] = new RawSource(status);
 	}
 
 	async generatePackageJson(visualConfigProd) {
@@ -314,54 +329,39 @@ class PowerBICustomVisualsWebpackPlugin {
 
 		prodConfig.visual.guid = `${config.visual.guid}`; // prod version of visual should not contaings _DEBUG postfix
 		prodConfig.visual.gitHubUrl = prodConfig.visual.gitHubUrl || "";
-		let packageJSONContent = await this.generatePackageJson(prodConfig);
 		prodConfig.externalJS = [];
 		prodConfig.assets = {
 			icon: "assets/icon.png",
 		};
 
+		const packageJSONContent = await this.generatePackageJson(prodConfig);
 		operations.push(
-			fs.outputFile(
+			this.outputFile(
 				path.join(dropPath, "package.json"),
-				packageJSONContent,
-				{
-					encoding: ENCODING,
-				}
+				packageJSONContent
 			)
 		);
 
 		if (this.options.generateResources) {
 			operations.push(
-				fs.outputFile(
+				this.outputFile(
 					path.join(resourcePath, "visual.js"),
-					config.content.js,
-					{
-						encoding: ENCODING,
-					}
+					config.content.js
 				),
-				fs.outputFile(
+				this.outputFile(
 					path.join(
 						resourcePath,
 						`${prodConfig.visual.guid}.pbiviz.json`
 					),
-					JSON.stringify(prodConfig),
-					{
-						encoding: ENCODING,
-					}
+					JSON.stringify(prodConfig)
 				),
-				fs.outputFile(
+				this.outputFile(
 					path.join(resourcePath, "visual.prod.js"),
-					config.content.js,
-					{
-						encoding: ENCODING,
-					}
+					config.content.js
 				),
-				fs.outputFile(
+				this.outputFile(
 					path.join(resourcePath, "visual.prod.css"),
-					config.content.css,
-					{
-						encoding: ENCODING,
-					}
+					config.content.css
 				)
 			);
 		}
@@ -379,29 +379,31 @@ class PowerBICustomVisualsWebpackPlugin {
 
 	async generatePbiviz(visualConfigProd, packageJSONContent, dropPath) {
 		return new Promise(async (resolve, reject) => {
+			const { guid, version } = visualConfigProd.visual;
 			const zip = new JSZip();
+
 			zip.file("package.json", packageJSONContent);
 			zip.folder("resources").file(
-				`${visualConfigProd.visual.guid}.pbiviz.json`,
+				`${guid}.pbiviz.json`,
 				JSON.stringify(visualConfigProd)
 			);
-			const outPath = path.join(
-				dropPath,
-				`${visualConfigProd.visual.guid}.${visualConfigProd.visual.version}.pbiviz`
-			);
-			await fs.ensureDir(dropPath);
-			if (this.options.compression !== "0") {
-				logger.info("Package compression enabled");
-			} else {
-				logger.info("Package compression disabled");
-			}
+
+			const outPath = path.join(dropPath, `${guid}.${version}.pbiviz`);
+			const isCompressionEnabled = this.options.compression !== "0";
 			const input = zip.generateNodeStream({
-				compression:
-					this.options.compression !== "0" ? "DEFLATE" : "STORE",
+				compression: isCompressionEnabled ? "DEFLATE" : "STORE",
 				compressionOptions: {
 					level: this.options.compression,
 				},
 			});
+
+			logger.info(
+				`Package compression ${
+					isCompressionEnabled ? "enabled" : "disabled"
+				}`
+			);
+
+			await fs.ensureDir(dropPath);
 			const out = fs.createWriteStream(outPath, {
 				flags: "w",
 			});
@@ -417,6 +419,10 @@ class PowerBICustomVisualsWebpackPlugin {
 					resolve();
 				});
 		});
+	}
+
+	outputFile(filePath, content) {
+		return fs.outputFile(filePath, content, { encoding: ENCODING });
 	}
 }
 
