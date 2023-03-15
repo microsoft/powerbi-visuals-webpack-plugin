@@ -37,7 +37,6 @@ Plugin config description
     iconImage: "Icon file as base64 string",
     devMode: "development mode",
     packageOutPath: "location to create *.pbiviz file",
-    cssStyles: "styles",
     generateResources: "it is used --resources flag in pbiviz tools",
     generatePbiviz: "it is used by --no-pbiviz flag in pbiviz tools"
   };
@@ -111,7 +110,7 @@ Plugin config description
     ...
     ```
 
-5. Use sample of config  webpack 4. (copy into `webpack.config.js`)
+5. Use sample of config  webpack 5. (copy into `webpack.config.js`)
 
     ```JavaScript
     const path = require('path');
@@ -254,6 +253,7 @@ Plugin config description
             path: path.join(__dirname, "/.tmp","drop"),
             publicPath: 'assets',
             filename: "[name]",
+            sourceMapFilename: "[name].js.map",
 		// if API version of the visual is higer/equal than 3.2.0 add library and libraryTarget options into config
         	// API version less that 3.2.0 doesn't require it
         	library: +powerbiApi.version.replace(/\./g,"") >= 320 ? pbivizFile.visual.guid : undefined,
