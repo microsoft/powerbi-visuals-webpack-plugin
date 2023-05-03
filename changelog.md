@@ -2,6 +2,10 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 3.2.1
+
+* update visual plugin template to support TS strict mode 
+
 ## 3.2.0
 * Fixed broken minification in pbiviz.json
 * Updated packages
