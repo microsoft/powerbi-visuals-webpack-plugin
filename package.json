@@ -19,8 +19,8 @@
   "scripts": {
     "test": "mocha test/*.test.js",
     "pretty": "prettier --loglevel warn --write \"*.js\"",
-    "lint": "eslint . extractor",
-    "lint:fix": "eslint --fix --ext .js,.ts ."
+    "lint": "eslint ./src",
+    "lint:fix": "eslint --fix --ext .js,.ts ./src"
   },
   "dependencies": {
     "ajv": "6.12.3",
