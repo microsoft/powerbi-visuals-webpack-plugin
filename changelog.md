@@ -2,13 +2,19 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 4.0.0
+
+* Implemented localization loader to reduce size of locales in custom visual
+
 ## 3.2.1
 
 * update visual plugin template to support TS strict mode 
 
 ## 3.2.0
+
 * Fixed broken minification in pbiviz.json
 * Updated packages
+
 ### **⚠ Breaking Chages**
 * Now `pbiviz.json` is not a webpack asset
 * **eExternalJS** and **cssStyles** options are **deprecated**

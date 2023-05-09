@@ -11,8 +11,8 @@ const getDependencies = require("./extractor/dependencies");
 const getCapabilities = require("./extractor/capabilities");
 const scriptVisual = require("./extractor/scriptVisual");
 const getLocalization = require("./extractor/localization");
-const pluginTemplate = require("./templates/plugin-template");
-const jsonTemplate = require("./templates/package-json-template");
+const pluginTemplate = require("../templates/plugin-template");
+const jsonTemplate = require("../templates/package-json-template");
 
 const DEBUG = "_DEBUG";
 
@@ -426,4 +426,7 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 }
 
-module.exports = PowerBICustomVisualsWebpackPlugin;
+module.exports = {
+	PowerBICustomVisualsWebpackPlugin,
+	LocalizationLoader: require.resolve("./localizationLoader"),
+};
