@@ -2,6 +2,11 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 4.0.1
+
+* Fixed error when creating new visual plugin
+* Updated packages
+
 ## 4.0.0
 
 * Implemented localization loader to reduce size of locales in custom visual

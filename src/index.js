@@ -227,7 +227,9 @@ class PowerBICustomVisualsWebpackPlugin {
 			process.cwd(),
 			this.options.pluginLocation
 		);
-		const oldPluginTs = (await fs.readFile(pluginLocation)) || "";
+		const oldPluginTs = fs.existsSync(pluginLocation)
+			? fs.readFileSync(pluginLocation)
+			: "";
 
 		// write file if only changes in visualPlugin
 		if (oldPluginTs.toString() !== pluginTs.toString()) {
@@ -404,9 +406,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			);
 
 			await fs.ensureDir(dropPath);
-			const out = fs.createWriteStream(outPath, {
-				flags: "w",
-			});
+			const out = fs.createWriteStream(outPath);
 
 			input
 				.pipe(out)
