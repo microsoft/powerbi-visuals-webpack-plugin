@@ -391,7 +391,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			);
 
 			const outPath = path.join(dropPath, `${guid}.${version}.pbiviz`);
-			const isCompressionEnabled = this.options.compression !== 0;
+			const isCompressionEnabled = this.options.compression !== "0";
 			const input = zip.generateNodeStream({
 				compression: isCompressionEnabled ? "DEFLATE" : "STORE",
 				compressionOptions: {
