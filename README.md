@@ -16,7 +16,7 @@ Provides following functionality:
 Plugin config description
 
 ```JavaScript
-  var defaultOptions = {
+  const defaultOptions = {
       visual: {
         name: "Visual name",
         displayName: "Visual name for displaying in visuals panel",
@@ -44,16 +44,23 @@ Plugin config description
 1. Install all required libraries to build a visual
 
     ```cmd
-    npm i webpack webpack-cli powerbi-visuals-webpack-plugin mini-css-extract-plugin webpack-bundle-analyzer extra-watch-webpack-plugin ts-loader less-loader less json-loader css-loader webpack-dev-server --save-dev
+    npm i webpack webpack-cli powerbi-visuals-webpack-plugin mini-css-extract-plugin webpack-bundle-analyzer extra-watch-webpack-plugin ts-loader json-loader less-loader less css-loader webpack-dev-server --save-dev
     ```
 
-2. Install the latest version of API package
+2. Install optional libraries to build JSX files
+
+    If you aren't going to build JSX files, then you can skip this step and delete all babel in section 5.
+    ```cmd
+    npm i @babel/preset-react @babel/runtime @babel/runtime-corejs3 @babel/core @babel/preset-env babel-loader --save-dev
+    ```
+
+3. Install the latest version of API package
 
     ```cmd
     npm i powerbi-visuals-api --save
     ```
 
-3. Create SSL certificates  (optional)
+4. Create SSL certificates  (optional)
 
     You need generate SSL certificates manually or copy files from powerbi-visuals-tools instance.
 
@@ -100,7 +107,7 @@ Plugin config description
     ...
     ```
 
-4. Use sample of config  webpack 5. (copy into `webpack.config.js`)
+5. Use sample of config  webpack 5. (copy into `webpack.config.js`)
 
     ```JavaScript
     const path = require("path");
@@ -127,6 +134,25 @@ Plugin config description
     const visualSourceLocation = "../../src/visual" // This path is used inside of the generated plugin, so it depends on pluginLocation
     const statsLocation = "../../webpack.statistics.html";
 
+    let babelOptions = {
+        presets: [
+            [
+                require.resolve('@babel/preset-env'),
+                {
+                    "targets": {
+                        "ie": "11"
+                    },
+                    useBuiltIns: "entry",
+                    corejs: 3,
+                    modules: false
+                }
+            ],
+            "@babel/preset-react" // required for jsx files
+        ],
+        sourceType: "unambiguous", // tell to babel that the project can contains different module types, not only es2015 modules
+        cacheDirectory: path.join(".tmp", "babelCache") // path for cache files
+    };
+
     const isProduction = true
 
     module.exports = {
@@ -151,6 +177,10 @@ Plugin config description
                     include: /powerbi-visuals-|src|precompile(\\|\/)visualPlugin.ts/,
                     use: [
                         {
+                            loader: require.resolve('babel-loader'),
+                            options: babelOptions
+                        },
+                        {
                             loader: "ts-loader",
                             options: {
                                 transpileOnly: false,
@@ -158,6 +188,15 @@ Plugin config description
                             }
                         }
                     ],
+                },
+                {
+                    test: /(\.js)x|\.js$/,
+                    use: [
+                        {
+                            loader: require.resolve('babel-loader'),
+                            options: babelOptions
+                        }
+                    ]
                 },
                 {
                     test: /\.json$/,
@@ -271,7 +310,7 @@ Plugin config description
     };
     ```
 
-5. Add new script to build a visual package
+6. Add new script to build a visual package
 
     Add new command `"package": "webpack"` into `scripts` section of `package.json`:
 
