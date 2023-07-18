@@ -2,6 +2,11 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 4.0.2
+
+* Updated ReadMe
+* Removed redundant options
+
 ## 4.0.1
 
 * Fixed error when creating new visual plugin
