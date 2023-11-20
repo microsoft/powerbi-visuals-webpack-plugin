@@ -60,6 +60,7 @@ class PowerBICustomVisualsWebpackPlugin {
 				: base64Img(path.join(process.cwd(), options.assets.icon)),
 			devMode: true,
 			packageOutPath: path.join(process.cwd(), "dist"),
+			dropPath: path.join(process.cwd(), ".tmp", "drop"),
 			generateResources: true,
 			generatePbiviz: true,
 			generatePlugin: true,
@@ -174,7 +175,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		}
 
 		await this.outputFile(
-			path.join(".tmp", "drop", "pbiviz.json"),
+			path.join(options.dropPath, "pbiviz.json"),
 			JSON.stringify(config)
 		);
 	}
