@@ -200,24 +200,24 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	removeNetworkCalls(code, shouldRemoveNetworkCalls = false) {
-    	const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
+		const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
 		let numberOfRemovedNetworkCalls = 0;
 
-        traverse(parsedCode, {
-            CallExpression(path) {
-                const callee = path.get("callee");
+		traverse(parsedCode, {
+			CallExpression(path) {
+				const callee = path.get("callee");
 
-                if (callee.isIdentifier({ name: "fetch" })) {
+				if (callee.isIdentifier({ name: "fetch" })) {
 					if (shouldRemoveNetworkCalls) {
 						path.replaceWithSourceString("undefined");
 					}
 					numberOfRemovedNetworkCalls++;
-                }
-            },
+				}
+			},
 
 			NewExpression(path) {
 				const callee = path.get("callee");
-	
+
 				if (callee.isIdentifier({ name: "XMLHttpRequest" })) {
 					if (shouldRemoveNetworkCalls) {
 						path.replaceWithSourceString("undefined");
@@ -225,14 +225,14 @@ class PowerBICustomVisualsWebpackPlugin {
 					numberOfRemovedNetworkCalls++;
 				}
 			}
-        });
+		});
 
 		if (!shouldRemoveNetworkCalls && numberOfRemovedNetworkCalls > 0) {
 			logger.warn(`${numberOfRemovedNetworkCalls} possible network calls found. It is forbidden for visuals that are going to be PowerBI Certified.`);
 		} else if (numberOfRemovedNetworkCalls > 0) {
 			logger.warn(`${numberOfRemovedNetworkCalls} network calls were removed, test the visual before publishing`);
 		}
-        return generate(parsedCode, { retainLines: true }).code;
+		return generate(parsedCode, { retainLines: true }).code;
 	}
 
 	async _beforeCompile(callback) {
