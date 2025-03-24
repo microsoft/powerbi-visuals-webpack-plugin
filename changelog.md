@@ -2,6 +2,10 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 4.2.0
+
+* Added `removeNetworkCalls` option to remove network calls from the visual build. This option is useful for certified visuals. It'll make sure that no forbidden network calls are present in the visual. Test the visual before publishing, since removing these calls might break the visual in some cases.
+
 ## 4.0.2
 
 * Updated ReadMe
@@ -27,7 +31,7 @@ This page contains information about changes to the **PowerBI-visuals-webpack-pl
 
 ### **⚠ Breaking Chages**
 * Now `pbiviz.json` is not a webpack asset
-* **eExternalJS** and **cssStyles** options are **deprecated**
+* **externalJS** and **cssStyles** options are **deprecated**
 
 ## 3.1.2
 
