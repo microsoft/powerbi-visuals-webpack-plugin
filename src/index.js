@@ -200,7 +200,7 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	removeNetworkCalls(code, shouldRemoveNetworkCalls = false) {
-        const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
+    	const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
 		let numberOfRemovedNetworkCalls = 0;
 
         traverse(parsedCode, {
