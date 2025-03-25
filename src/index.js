@@ -228,7 +228,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		});
 
 		if (!shouldRemoveNetworkCalls && numberOfRemovedNetworkCalls > 0) {
-			logger.warn(`${numberOfRemovedNetworkCalls} possible network calls found. It is forbidden for visuals that are going to be PowerBI Certified.`);
+			logger.warn(`${numberOfRemovedNetworkCalls} possible network calls found. It is forbidden for visuals that are going to be PowerBI Certified. Read more: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified`);
 		} else if (numberOfRemovedNetworkCalls > 0) {
 			logger.warn(`${numberOfRemovedNetworkCalls} network calls were removed, test the visual before publishing`);
 		}
