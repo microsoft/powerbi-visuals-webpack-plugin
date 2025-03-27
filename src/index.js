@@ -191,7 +191,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			const content = assets[asset].source();
 
 			if (extension === "js") {
-				assetsContent.jsContent = this.removeNetworkCalls(content, this.options.removeNetworkCalls)
+				assetsContent.jsContent = this.options.removeNetworkCalls ? this.removeNetworkCalls(content) : content;
 			} else if (extension === "css") {
 				assetsContent.cssContent = content;
 			}
@@ -199,19 +199,15 @@ class PowerBICustomVisualsWebpackPlugin {
 		return assetsContent;
 	}
 
-	removeNetworkCalls(code, shouldRemoveNetworkCalls = false) {
+	removeNetworkCalls(code) {
 		const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
-		let numberOfRemovedNetworkCalls = 0;
 
 		traverse(parsedCode, {
 			CallExpression(path) {
 				const callee = path.get("callee");
 
 				if (callee.isIdentifier({ name: "fetch" })) {
-					if (shouldRemoveNetworkCalls) {
-						path.replaceWithSourceString("undefined");
-					}
-					numberOfRemovedNetworkCalls++;
+					path.replaceWithSourceString("undefined");
 				}
 			},
 
@@ -219,19 +215,12 @@ class PowerBICustomVisualsWebpackPlugin {
 				const callee = path.get("callee");
 
 				if (callee.isIdentifier({ name: "XMLHttpRequest" })) {
-					if (shouldRemoveNetworkCalls) {
-						path.replaceWithSourceString("undefined");
-					}
-					numberOfRemovedNetworkCalls++;
+					path.replaceWithSourceString("undefined");
 				}
 			}
 		});
 
-		if (!shouldRemoveNetworkCalls && numberOfRemovedNetworkCalls > 0) {
-			logger.warn(`${numberOfRemovedNetworkCalls} possible network calls found. It is forbidden for visuals that are going to be PowerBI Certified. Read more: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified`);
-		} else if (numberOfRemovedNetworkCalls > 0) {
-			logger.warn(`${numberOfRemovedNetworkCalls} network calls were removed, test the visual before publishing`);
-		}
+		logger.warn(`All possible network calls were removed, test the visual before publishing`);
 		return generate(parsedCode, { retainLines: true }).code;
 	}
 
