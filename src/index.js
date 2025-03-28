@@ -193,7 +193,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			const content = assets[asset].source();
 
 			if (extension === "js") {
-				assetsContent.jsContent = shouldCheckNetworkCalls ? this.removeNetworkCalls(content, this.options.certificationFix, this.options.certificationAudit) : content;
+				assetsContent.jsContent = shouldCheckNetworkCalls ? this.handleNetworkCalls(content, this.options.certificationFix, this.options.certificationAudit) : content;
 			} else if (extension === "css") {
 				assetsContent.cssContent = content;
 			}
@@ -201,7 +201,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		return assetsContent;
 	}
 
-	removeNetworkCalls(code, forceFix, audit) {
+	handleNetworkCalls(code, forceFix, audit) {
 		const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
 		let certificationAudit = {
 			call: {}, 
