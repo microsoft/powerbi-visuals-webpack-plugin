@@ -1,6 +1,6 @@
 {
   "name": "powerbi-visuals-webpack-plugin",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "PowerBI Custom Visuals webpack plugin",
   "main": "src/index.js",
   "keywords": [
@@ -23,6 +23,9 @@
     "lint:fix": "eslint --fix --ext .js,.ts ./src"
   },
   "dependencies": {
+    "@babel/generator": "^7.26.10",
+    "@babel/parser": "^7.26.10",
+    "@babel/traverse": "^7.26.10",
     "ajv": "6.12.3",
     "chalk": "^4.1.2",
     "compare-versions": "^3.6.0",
@@ -32,9 +35,6 @@
     "webpack-sources": "^3.2.3"
   },
   "devDependencies": {
-    "@babel/generator": "^7.26.10",
-    "@babel/parser": "^7.26.10",
-    "@babel/traverse": "^7.26.10",
     "eslint": "^8.45.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-node": "^11.1.0",
