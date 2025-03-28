@@ -4,6 +4,9 @@ const fs = require("fs-extra");
 const cloneDeepFunc = require("lodash.clonedeep");
 const JSZip = require("jszip");
 const RawSource = require("webpack-sources/lib/RawSource");
+const { parse } = require("@babel/parser");
+const traverse = require("@babel/traverse").default;
+const generate = require("@babel/generator").default;
 
 const { ENCODING } = require("./constants");
 const logger = require("./logger");
@@ -71,6 +74,8 @@ class PowerBICustomVisualsWebpackPlugin {
 			visualSourceLocation: "",
 			pluginLocation: path.join(".tmp", "precompile", "visualPlugin.ts"),
 			compression: 0, // no compression,
+			certificationAudit: false,
+			certificationFix: false,
 		};
 
 		this._name = "PowerBICustomVisualsWebpackPlugin";
@@ -182,17 +187,82 @@ class PowerBICustomVisualsWebpackPlugin {
 
 	getAssetsContent(assets) {
 		let assetsContent = {};
+		const shouldCheckNetworkCalls = this.options.certificationAudit || this.options.certificationFix;
 		for (let asset in assets) {
 			const extension = asset.split(".").pop();
 			const content = assets[asset].source();
 
 			if (extension === "js") {
-				assetsContent.jsContent = content;
+				assetsContent.jsContent = shouldCheckNetworkCalls ? this.handleNetworkCalls(content, this.options.certificationFix, this.options.certificationAudit) : content;
 			} else if (extension === "css") {
 				assetsContent.cssContent = content;
 			}
 		}
 		return assetsContent;
+	}
+
+	handleNetworkCalls(code, forceFix, audit) {
+		const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
+		let certificationAudit = {
+			call: {}, 
+			newExperssion: {}, 
+			total: 0
+		};
+		const callsToCheck = {
+			call: ["fetch", "eval"],
+			newExperssion: ["XMLHttpRequest"],
+		}
+
+		traverse(parsedCode, {
+			CallExpression(path) {
+				const callee = path.get("callee");
+
+				callsToCheck.call.forEach(name => {
+					if (callee.isIdentifier({ name })) {
+						certificationAudit.call[name] = (certificationAudit.call[name] || 0) + 1
+						certificationAudit.total++;
+						if (forceFix) {
+							path.replaceWithSourceString("undefined");
+						}
+					}
+				});
+			},
+
+			NewExpression(path) {
+				const callee = path.get("callee");
+
+				callsToCheck.newExperssion.forEach(name => {
+					if (callee.isIdentifier({ name })) {
+						certificationAudit.newExperssion[name] = (certificationAudit.newExperssion[name] || 0) + 1
+						certificationAudit.total++;
+						if (forceFix) {
+							path.replaceWithSourceString("undefined");
+						}
+					}
+				});
+			}
+		});
+
+		this.logAudit(certificationAudit, forceFix, audit);
+		return generate(parsedCode, { retainLines: true }).code;
+	}
+
+	logAudit(certificationAudit, forceFix, audit) {
+		if (forceFix) {
+			logger.warn(`${certificationAudit.total} external requests were removed, test the visual before publishing`);
+		} else if (audit) {
+			logger.separator();
+			logger.info('External requests audit:');
+			Object.keys(certificationAudit.call).forEach(key => {
+				logger.error(`${key} - Found ${certificationAudit.call[key]} times`);
+			});
+			Object.keys(certificationAudit.newExperssion).forEach(key => {
+				logger.error(`${key} - Found ${certificationAudit.newExperssion[key]} times`);
+			});
+			logger.info('Read more about certification requirements here: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified#not-allowed');
+			logger.error(`Found ${certificationAudit.total} external requests in resulted package. Compile the package with --certification-fix flag to remove forbidden requests.`);
+			logger.separator();
+		}
 	}
 
 	async _beforeCompile(callback) {
