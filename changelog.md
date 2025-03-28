@@ -4,7 +4,8 @@ This page contains information about changes to the **PowerBI-visuals-webpack-pl
 
 ## 4.2.0
 
-* Added `removeNetworkCalls` option to remove network calls from the visual build. This option is useful for certified visuals. It'll make sure that no forbidden network calls are present in the visual. Test the visual before publishing, since removing these calls might break the visual in some cases.
+* New property `certificationAudit` to audit network calls in the visual.
+* New property `certificationFix` to remove network calls from the visual build. This option is useful for **certified** visuals. It'll make sure that no forbidden network calls are present in the visual. Test the visual before publishing, since removing these calls might break the visual in some cases.
 
 ## 4.0.2
 

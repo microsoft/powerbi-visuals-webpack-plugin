@@ -24,4 +24,8 @@ module.exports = {
 		const tag = chalk.bgCyan(" info  ");
 		console.info.apply(null, _prependLogTag(tag, args));
 	},
+
+	separator: () => {
+		console.log(chalk.white("--------------------------------"));
+	}
 };
