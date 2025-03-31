@@ -204,42 +204,44 @@ class PowerBICustomVisualsWebpackPlugin {
 	handleNetworkCalls(code, forceFix, audit) {
 		const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
 		let certificationAudit = {
-			call: {}, 
-			newExperssion: {}, 
+			foundCalls: {}, 
 			total: 0
 		};
-		const callsToCheck = {
-			call: ["fetch", "eval"],
-			newExperssion: ["XMLHttpRequest"],
-		}
+		const callsToCheck = ["fetch", "eval", "XMLHttpRequest"];
+
+		// Helper function to check and replace forbidden calls
+		const checkAndReplace = (node, name) => {
+			if (callsToCheck.includes(name)) {
+				certificationAudit.foundCalls[name] = (certificationAudit.foundCalls[name] || 0) + 1;
+				certificationAudit.total++;
+				if (forceFix) {
+					node.replaceWithSourceString("undefined");
+				}
+			}
+		};
 
 		traverse(parsedCode, {
 			CallExpression(path) {
 				const callee = path.get("callee");
-
-				callsToCheck.call.forEach(name => {
-					if (callee.isIdentifier({ name })) {
-						certificationAudit.call[name] = (certificationAudit.call[name] || 0) + 1
-						certificationAudit.total++;
-						if (forceFix) {
-							path.replaceWithSourceString("undefined");
-						}
-					}
-				});
+				if (callee.isIdentifier()) {
+					checkAndReplace(path, callee.node.name);
+				}
 			},
 
 			NewExpression(path) {
 				const callee = path.get("callee");
+				if (callee.isIdentifier()) {
+					checkAndReplace(path, callee.node.name);
+				}
+			},
 
-				callsToCheck.newExperssion.forEach(name => {
-					if (callee.isIdentifier({ name })) {
-						certificationAudit.newExperssion[name] = (certificationAudit.newExperssion[name] || 0) + 1
-						certificationAudit.total++;
-						if (forceFix) {
-							path.replaceWithSourceString("undefined");
-						}
-					}
-				});
+			MemberExpression(path) {
+				const object = path.get("object");
+				const property = path.get("property");
+
+				if (object.isIdentifier({ name: "window" }) && property.isIdentifier()) {
+					checkAndReplace(path, property.node.name);
+				}
 			}
 		});
 
@@ -253,11 +255,8 @@ class PowerBICustomVisualsWebpackPlugin {
 		} else if (audit) {
 			logger.separator();
 			logger.info('External requests audit:');
-			Object.keys(certificationAudit.call).forEach(key => {
-				logger.error(`${key} - Found ${certificationAudit.call[key]} times`);
-			});
-			Object.keys(certificationAudit.newExperssion).forEach(key => {
-				logger.error(`${key} - Found ${certificationAudit.newExperssion[key]} times`);
+			Object.keys(certificationAudit.foundCalls).forEach(key => {
+				logger.error(`${key} - Found ${certificationAudit.foundCalls[key]} times`);
 			});
 			logger.info('Read more about certification requirements here: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified#not-allowed');
 			logger.error(`Found ${certificationAudit.total} external requests in resulted package. Compile the package with --certification-fix flag to remove forbidden requests.`);
