@@ -1,13 +1,13 @@
 const Ajv = require("ajv");
 const path = require("path");
-const fs = require("fs-extra");
 const logger = require("../logger");
+const utils = require("../utils");
 
 const getSchema = async function (options) {
 	if (options.dependenciesSchema)
 		return Promise.resolve(options.dependenciesSchema);
 
-	return fs.readJson(
+	return utils.safelyReadConfig(
 		path.join(options.schemaLocation, "schema.dependencies.json")
 	);
 };
@@ -18,8 +18,7 @@ module.exports = async function (options) {
 	let getContent;
 	switch (typeof options.dependencies) {
 		case "string": {
-			getContent = fs
-				.readJson(path.join(process.cwd(), options.dependencies))
+			getContent = utils.safelyReadConfig(path.join(process.cwd(), options.dependencies))
 				.catch((err) => {
 					if (err.code === "ENOENT") {
 						logger.warn(
