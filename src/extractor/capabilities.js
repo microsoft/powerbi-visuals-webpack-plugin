@@ -1,13 +1,13 @@
 const Ajv = require("ajv");
 const path = require("path");
-const fs = require("fs-extra");
 const logger = require("../logger");
+const utils = require("../utils");
 
 const getSchema = async function (options) {
 	if (options.capabilitiesSchema)
 		return Promise.resolve(options.capabilitiesSchema);
 
-	return fs.readJson(
+	return utils.safelyReadConfig(
 		path.join(options.schemaLocation, "schema.capabilities.json")
 	);
 };
@@ -16,7 +16,7 @@ module.exports = async function (options) {
 	let getContent;
 	switch (typeof options.capabilities) {
 		case "string": {
-			getContent = fs.readJson(
+			getContent = utils.safelyReadConfig(
 				path.join(process.cwd(), options.capabilities)
 			);
 			break;
