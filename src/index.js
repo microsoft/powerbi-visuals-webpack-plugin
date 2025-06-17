@@ -236,22 +236,21 @@ class PowerBICustomVisualsWebpackPlugin {
 			},
 
 			MemberExpression(path) {
-				const object = path.get("object");
 				const property = path.get("property");
 
-				if (object.isIdentifier({ name: "window" }) && property.isIdentifier()) {
+				if (property.isIdentifier()) {
 					checkAndReplace(path, property.node.name);
 				}
 			}
 		});
 
-		this.logAudit(certificationAudit, forceFix, audit);
+		this.logAudit(certificationAudit, forceFix, audit, callsToCheck);
 		return generate(parsedCode, { retainLines: true }).code;
 	}
 
-	logAudit(certificationAudit, forceFix, audit) {
+	logAudit(certificationAudit, forceFix, audit, callsToCheck) {
 		if (forceFix) {
-			logger.warn(`${certificationAudit.total} external requests were removed, test the visual before publishing`);
+			logger.warn(`${certificationAudit.total} entries of ${callsToCheck.join(", ")} were removed. Test the visual before publishing`);
 		} else if (audit) {
 			logger.separator();
 			logger.info('External requests audit:');
