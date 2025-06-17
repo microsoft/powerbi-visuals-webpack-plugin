@@ -2,6 +2,10 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 4.3.1
+
+* Extended audit for network calls
+
 ## 4.3.0
 
 * Added support for dynamic {capabilities.js, dependencies.js} configs
