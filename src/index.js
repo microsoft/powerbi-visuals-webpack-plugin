@@ -407,27 +407,33 @@ class PowerBICustomVisualsWebpackPlugin {
 		);
 
 		if (this.options.generateResources) {
-			operations.push(
-				this.outputFile(
-					path.join(resourcePath, "visual.js"),
+			if (config.content.js != null) {
+				operations.push(
+					this.outputFile(
+						path.join(resourcePath, "visual.js"),
+						config.content.js
+					)
+				);
+				operations.push(this.outputFile(
+					path.join(resourcePath, "visual.prod.js"),
 					config.content.js
-				),
-				this.outputFile(
+				));
+			}
+			if (prodConfig != null) {
+				operations.push(this.outputFile(
 					path.join(
 						resourcePath,
 						`${prodConfig.visual.guid}.pbiviz.json`
 					),
 					JSON.stringify(prodConfig)
-				),
-				this.outputFile(
-					path.join(resourcePath, "visual.prod.js"),
-					config.content.js
-				),
-				this.outputFile(
+				));
+			}
+			if (config.content.css != null) {
+				operations.push(this.outputFile(
 					path.join(resourcePath, "visual.prod.css"),
 					config.content.css
-				)
-			);
+				));
+			}
 		}
 
 		if (this.options.generatePbiviz) {
