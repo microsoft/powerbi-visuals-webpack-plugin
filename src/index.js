@@ -76,6 +76,13 @@ class PowerBICustomVisualsWebpackPlugin {
 			compression: 0, // no compression,
 			certificationAudit: false,
 			certificationFix: false,
+			environmentInformation: { // Helps to complete certification faster
+				typescript: null,
+				node: null,
+				tools: null,
+				flags: "",
+				os: ""
+			}
 		};
 
 		this._name = "PowerBICustomVisualsWebpackPlugin";
@@ -341,6 +348,7 @@ class PowerBICustomVisualsWebpackPlugin {
 				js: jsContent,
 				css: cssContent,
 				iconBase64: this.options.iconImage,
+				environment: btoa(JSON.stringify(this.options.environmentInformation))
 			},
 			visualEntryPoint: "",
 		};
