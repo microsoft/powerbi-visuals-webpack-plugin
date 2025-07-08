@@ -2,6 +2,20 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+# 4.4.0
+
+* Implemented new `environmentInformation` option with following nested properties:
+```js
+{
+    typescript: string,
+    node: string,
+    tools: string, // powerbi-visuals-tools version
+    flags: "", // flags used to build pbiviz (such as --certification-fix)
+    os: ""
+}
+```
+Using this flag will help speed up the certification process and reduce the chances of mistaken rejections.
+
 ## 4.3.1
 
 * Extended audit for network calls
