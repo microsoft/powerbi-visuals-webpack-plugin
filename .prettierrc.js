@@ -6,8 +6,8 @@ module.exports = {
 		{
 			files: "*.json",
 			options: {
-				useTabs: false
-			}
-		}
-	]
+				useTabs: false,
+			},
+		},
+	],
 };

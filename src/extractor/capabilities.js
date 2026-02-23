@@ -8,7 +8,7 @@ const getSchema = async function (options) {
 		return Promise.resolve(options.capabilitiesSchema);
 
 	return utils.safelyReadConfig(
-		path.join(options.schemaLocation, "schema.capabilities.json")
+		path.join(options.schemaLocation, "schema.capabilities.json"),
 	);
 };
 
@@ -17,7 +17,7 @@ module.exports = async function (options) {
 	switch (typeof options.capabilities) {
 		case "string": {
 			getContent = utils.safelyReadConfig(
-				path.join(process.cwd(), options.capabilities)
+				path.join(process.cwd(), options.capabilities),
 			);
 			break;
 		}
@@ -35,10 +35,10 @@ module.exports = async function (options) {
 			const valid = ajv.validate(schema, json);
 			if (valid) return json;
 			ajv.errors.forEach((error) =>
-				logger.error(error.message, error.dataPath)
+				logger.error(error.message, error.dataPath),
 			);
 
 			throw new Error("Invalid capabilities");
-		}
+		},
 	);
 };

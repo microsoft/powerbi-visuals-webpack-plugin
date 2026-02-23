@@ -81,12 +81,12 @@ class PowerBICustomVisualsWebpackPlugin {
 		this._name = "PowerBICustomVisualsWebpackPlugin";
 		this.options = Object.assign(defaultOptions, options);
 		this.options.pluginLocation = path.normalize(
-			this.options.pluginLocation
+			this.options.pluginLocation,
 		);
 		this.options.schemaLocation = path.join(
 			process.cwd(),
 			".api",
-			"v" + this.options.apiVersion
+			"v" + this.options.apiVersion,
 		);
 	}
 
@@ -101,7 +101,7 @@ class PowerBICustomVisualsWebpackPlugin {
 				() =>
 					this.generateStatusAsset(compilation).catch((ex) => {
 						[].concat(ex).map((ex) => logger.error(ex.message));
-					})
+					}),
 			);
 		});
 
@@ -120,14 +120,14 @@ class PowerBICustomVisualsWebpackPlugin {
 			this._name,
 			(compilationParams, callback) => {
 				this._beforeCompile(callback);
-			}
+			},
 		);
 
 		compiler.hooks.watchRun.tapAsync(
 			this._name,
 			(compilation, callback) => {
 				this._beforeCompile(callback);
-			}
+			},
 		);
 	}
 
@@ -146,7 +146,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			getLocalization(options),
 			getDependencies(options),
 			getCapabilities(options).then((capabilities) =>
-				scriptVisual.patchCababilities(options, capabilities)
+				scriptVisual.patchCababilities(options, capabilities),
 			),
 			this.getAssetsContent(compilation.assets),
 		])
@@ -162,8 +162,8 @@ class PowerBICustomVisualsWebpackPlugin {
 						capabilities,
 						dependencies,
 						jsContent,
-						cssContent
-					)
+						cssContent,
+					),
 			)
 			.catch((err) => {
 				throw err;
@@ -181,19 +181,26 @@ class PowerBICustomVisualsWebpackPlugin {
 
 		await this.outputFile(
 			path.join(options.dropPath, "pbiviz.json"),
-			JSON.stringify(config)
+			JSON.stringify(config),
 		);
 	}
 
 	getAssetsContent(assets) {
 		let assetsContent = {};
-		const shouldCheckNetworkCalls = this.options.certificationAudit || this.options.certificationFix;
+		const shouldCheckNetworkCalls =
+			this.options.certificationAudit || this.options.certificationFix;
 		for (let asset in assets) {
 			const extension = asset.split(".").pop();
 			const content = assets[asset].source();
 
 			if (extension === "js") {
-				assetsContent.jsContent = shouldCheckNetworkCalls ? this.handleNetworkCalls(content, this.options.certificationFix, this.options.certificationAudit) : content;
+				assetsContent.jsContent = shouldCheckNetworkCalls
+					? this.handleNetworkCalls(
+							content,
+							this.options.certificationFix,
+							this.options.certificationAudit,
+						)
+					: content;
 			} else if (extension === "css") {
 				assetsContent.cssContent = content;
 			}
@@ -202,17 +209,21 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	handleNetworkCalls(code, forceFix, audit) {
-		const parsedCode = parse(code, { sourceType: "module", plugins: ["jsx"] });
+		const parsedCode = parse(code, {
+			sourceType: "module",
+			plugins: ["jsx"],
+		});
 		let certificationAudit = {
-			foundCalls: {}, 
-			total: 0
+			foundCalls: {},
+			total: 0,
 		};
 		const callsToCheck = ["fetch", "eval", "XMLHttpRequest"];
 
 		// Helper function to check and replace forbidden calls
 		const checkAndReplace = (node, name) => {
 			if (callsToCheck.includes(name)) {
-				certificationAudit.foundCalls[name] = (certificationAudit.foundCalls[name] || 0) + 1;
+				certificationAudit.foundCalls[name] =
+					(certificationAudit.foundCalls[name] || 0) + 1;
 				certificationAudit.total++;
 				if (forceFix) {
 					node.replaceWithSourceString("undefined");
@@ -241,7 +252,7 @@ class PowerBICustomVisualsWebpackPlugin {
 				if (property.isIdentifier()) {
 					checkAndReplace(path, property.node.name);
 				}
-			}
+			},
 		});
 
 		this.logAudit(certificationAudit, forceFix, audit, callsToCheck);
@@ -250,15 +261,23 @@ class PowerBICustomVisualsWebpackPlugin {
 
 	logAudit(certificationAudit, forceFix, audit, callsToCheck) {
 		if (forceFix) {
-			logger.warn(`${certificationAudit.total} entries of ${callsToCheck.join(", ")} were removed. Test the visual before publishing`);
+			logger.warn(
+				`${certificationAudit.total} entries of ${callsToCheck.join(", ")} were removed. Test the visual before publishing`,
+			);
 		} else if (audit) {
 			logger.separator();
-			logger.info('External requests audit:');
-			Object.keys(certificationAudit.foundCalls).forEach(key => {
-				logger.error(`${key} - Found ${certificationAudit.foundCalls[key]} times`);
+			logger.info("External requests audit:");
+			Object.keys(certificationAudit.foundCalls).forEach((key) => {
+				logger.error(
+					`${key} - Found ${certificationAudit.foundCalls[key]} times`,
+				);
 			});
-			logger.info('Read more about certification requirements here: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified#not-allowed');
-			logger.error(`Found ${certificationAudit.total} external requests in resulted package. Compile the package with --certification-fix flag to remove forbidden requests.`);
+			logger.info(
+				"Read more about certification requirements here: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified#not-allowed",
+			);
+			logger.error(
+				`Found ${certificationAudit.total} external requests in resulted package. Compile the package with --certification-fix flag to remove forbidden requests.`,
+			);
 			logger.separator();
 		}
 	}
@@ -287,7 +306,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		const pluginTs = pluginTemplate(this.getPluginOptions());
 		const pluginLocation = path.join(
 			process.cwd(),
-			this.options.pluginLocation
+			this.options.pluginLocation,
 		);
 		const oldPluginTs = fs.existsSync(pluginLocation)
 			? fs.readFileSync(pluginLocation)
@@ -318,7 +337,7 @@ class PowerBICustomVisualsWebpackPlugin {
 		capabilities,
 		dependencies,
 		jsContent,
-		cssContent
+		cssContent,
 	) {
 		return {
 			visual: {
@@ -402,37 +421,37 @@ class PowerBICustomVisualsWebpackPlugin {
 		operations.push(
 			this.outputFile(
 				path.join(dropPath, "package.json"),
-				packageJSONContent
-			)
+				packageJSONContent,
+			),
 		);
 
 		if (this.options.generateResources) {
 			operations.push(
 				this.outputFile(
 					path.join(resourcePath, "visual.js"),
-					config.content.js
+					config.content.js,
 				),
 				this.outputFile(
 					path.join(
 						resourcePath,
-						`${prodConfig.visual.guid}.pbiviz.json`
+						`${prodConfig.visual.guid}.pbiviz.json`,
 					),
-					JSON.stringify(prodConfig)
+					JSON.stringify(prodConfig),
 				),
 				this.outputFile(
 					path.join(resourcePath, "visual.prod.js"),
-					config.content.js
+					config.content.js,
 				),
 				this.outputFile(
 					path.join(resourcePath, "visual.prod.css"),
-					config.content.css
-				)
+					config.content.css,
+				),
 			);
 		}
 
 		if (this.options.generatePbiviz) {
 			operations.push(
-				this.generatePbiviz(prodConfig, packageJSONContent, dropPath)
+				this.generatePbiviz(prodConfig, packageJSONContent, dropPath),
 			);
 		}
 
@@ -449,7 +468,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			zip.file("package.json", packageJSONContent);
 			zip.folder("resources").file(
 				`${guid}.pbiviz.json`,
-				JSON.stringify(visualConfigProd)
+				JSON.stringify(visualConfigProd),
 			);
 
 			const outPath = path.join(dropPath, `${guid}.${version}.pbiviz`);
@@ -464,7 +483,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			logger.info(
 				`Package compression ${
 					isCompressionEnabled ? "enabled" : "disabled"
-				}`
+				}`,
 			);
 
 			await fs.ensureDir(dropPath);
