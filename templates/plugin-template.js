@@ -1,4 +1,4 @@
-const compareVersions = require("compare-versions");
+const { compare } = require("compare-versions");
 
 module.exports = function (pluginOptions) {
 	return `import { ${pluginOptions.visualClass} } from "${
@@ -8,7 +8,7 @@ import powerbiVisualsApi from "powerbi-visuals-api";
 import IVisualPlugin = powerbiVisualsApi.visuals.plugins.IVisualPlugin;
 import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions;
 ${
-	compareVersions.compare(pluginOptions.apiVersion, "3.8.0", ">=")
+	compare(pluginOptions.apiVersion, "3.8.0", ">=")
 		? "import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;"
 		: ""
 }
@@ -26,7 +26,7 @@ var ${pluginOptions.pluginName}: IVisualPlugin = {
         throw 'Visual instance not found';
     },
     ${
-		compareVersions.compare(pluginOptions.apiVersion, "3.8.0", ">=")
+		compare(pluginOptions.apiVersion, "3.8.0", ">=")
 			? `createModalDialog: (dialogId: string, options: DialogConstructorOptions, initialState: object) => {
         const dialogRegistry = (<any>globalThis).dialogRegistry;
         if (dialogId in dialogRegistry) {

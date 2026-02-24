@@ -31,11 +31,11 @@ module.exports = async function (options) {
 
 	return Promise.all([getSchema(options), getContent]).then(
 		([schema, json]) => {
-			const ajv = new Ajv({ extendRefs: true });
+			const ajv = new Ajv({ strict: false, allErrors: true });
 			const valid = ajv.validate(schema, json);
 			if (valid) return json;
 			ajv.errors.forEach((error) =>
-				logger.error(error.message, error.dataPath),
+				logger.error(error.message, error.instancePath),
 			);
 
 			throw new Error("Invalid capabilities");
