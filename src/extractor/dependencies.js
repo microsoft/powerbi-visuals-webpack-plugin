@@ -8,7 +8,7 @@ const getSchema = async function (options) {
 		return Promise.resolve(options.dependenciesSchema);
 
 	return utils.safelyReadConfig(
-		path.join(options.schemaLocation, "schema.dependencies.json")
+		path.join(options.schemaLocation, "schema.dependencies.json"),
 	);
 };
 
@@ -18,14 +18,17 @@ module.exports = async function (options) {
 	let getContent;
 	switch (typeof options.dependencies) {
 		case "string": {
-			getContent = utils.safelyReadConfig(path.join(process.cwd(), options.dependencies))
+			getContent = utils
+				.safelyReadConfig(
+					path.join(process.cwd(), options.dependencies),
+				)
 				.catch((err) => {
 					if (err.code === "ENOENT") {
 						logger.warn(
 							`No such file or directory: ${path.join(
 								process.cwd(),
-								options.dependencies
-							)}`
+								options.dependencies,
+							)}`,
 						);
 					}
 					return null;
@@ -42,14 +45,14 @@ module.exports = async function (options) {
 
 	return Promise.all([getSchema(options), getContent]).then(
 		([schema, json]) => {
-			const ajv = new Ajv({ extendRefs: true });
+			const ajv = new Ajv({ strict: false, allErrors: true });
 			const valid = ajv.validate(schema, json);
 			if (valid) return json;
 			ajv.errors.forEach((error) =>
-				logger.error(error.message, error.dataPath)
+				logger.error(error.message, error.instancePath),
 			);
 
 			throw new Error("Invalid dependencies");
-		}
+		},
 	);
 };
