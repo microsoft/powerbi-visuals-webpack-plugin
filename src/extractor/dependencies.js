@@ -45,7 +45,12 @@ module.exports = async function (options) {
 
 	return Promise.all([getSchema(options), getContent]).then(
 		([schema, json]) => {
-			const ajv = new Ajv({ strict: false, allErrors: true });
+			const ajv = new Ajv({
+				strict: false,
+				allErrors: false,
+				validateSchema: true,
+				strictTuples: "log",
+			});
 			const valid = ajv.validate(schema, json);
 			if (valid) return json;
 			ajv.errors.forEach((error) =>
