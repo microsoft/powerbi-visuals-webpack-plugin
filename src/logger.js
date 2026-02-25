@@ -27,5 +27,5 @@ module.exports = {
 
 	separator: () => {
 		console.log(chalk.white("--------------------------------"));
-	}
+	},
 };
