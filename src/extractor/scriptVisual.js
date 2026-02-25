@@ -18,7 +18,7 @@ const getContent = async (filePath) => {
 		) {
 			const moduleContent = await fs.readFile(
 				path.join(process.cwd(), matchListFileName[1]),
-				ENCODING
+				ENCODING,
 			);
 			content = content.replace(Pattern4FileName, moduleContent);
 			replaceCount++;
@@ -62,7 +62,7 @@ const patchCababilities = async (options, capabilities) => {
 
 	const filePath = path.join(
 		process.cwd(),
-		"script." + getFileExtension(scriptResult.script.scriptProviderDefault)
+		"script." + getFileExtension(scriptResult.script.scriptProviderDefault),
 	);
 	const content = await getContent(filePath);
 	scriptResult.script.scriptSourceDefault = content;

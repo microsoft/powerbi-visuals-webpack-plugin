@@ -15,7 +15,7 @@ const parseFromProperty = async function (options) {
 					console.error(err);
 					return;
 				});
-		})
+		}),
 	);
 };
 
@@ -31,12 +31,12 @@ const parseFromFolder = async function (options) {
 							path.join(
 								resourcesDir,
 								folder,
-								"resources.resjson"
+								"resources.resjson",
 							),
 							{
 								throws: false,
 								encoding: ENCODING,
-							}
+							},
 						)
 						.then((resource) => ({
 							locale: folder,
@@ -46,9 +46,9 @@ const parseFromFolder = async function (options) {
 							console.error(err);
 							return;
 						});
-				})
+				}),
 			),
-		() => {}
+		() => {},
 	);
 };
 

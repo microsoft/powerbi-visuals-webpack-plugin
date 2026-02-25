@@ -2,6 +2,11 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 5.0.0
+
+* Updated packages
+* Used new eslint.config.js
+
 ## 4.3.1
 
 * Extended audit for network calls

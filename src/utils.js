@@ -1,6 +1,5 @@
-const fs = require('fs');
-const { ENCODING } = require('./constants');
-const { file } = require('jszip');
+const fs = require("fs");
+const { ENCODING } = require("./constants");
 
 const safelyImport = async (filePath) => {
 	try {
@@ -15,17 +14,16 @@ const safelyImport = async (filePath) => {
 const safelyParse = (filePath) => {
 	try {
 		return JSON.parse(fs.readFileSync(filePath, ENCODING));
-	}
-	catch (e) {
+	} catch (e) {
 		console.error(`Error parsing JSON config from ${filePath}`, e);
 		return null;
 	}
 };
 
 const safelyReadConfig = async (filePath) => {
-	return filePath.endsWith('js') ?
-		(await safelyImport(filePath)) :
-		safelyParse(filePath);
+	return filePath.endsWith("js")
+		? await safelyImport(filePath)
+		: safelyParse(filePath);
 };
 
 const populateErrors = (errors, fileName, type) => {
@@ -42,5 +40,5 @@ module.exports = {
 	safelyImport,
 	safelyParse,
 	safelyReadConfig,
-	populateErrors
+	populateErrors,
 };
