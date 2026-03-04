@@ -2,6 +2,10 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 5.0.1
+
+* Removed error when 0 dangerous functions found in certification-fix
+
 ## 5.0.0
 
 * Updated packages
