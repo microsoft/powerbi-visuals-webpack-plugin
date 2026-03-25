@@ -35,7 +35,9 @@ Plugin config description
     devMode: "development mode",
     packageOutPath: "location to create *.pbiviz file",
     generateResources: "it is used --resources flag in pbiviz tools",
-    generatePbiviz: "it is used by --no-pbiviz flag in pbiviz tools"
+    generatePbiviz: "it is used by --no-pbiviz flag in pbiviz tools",
+    certificationAudit: "scan the bundle for forbidden calls (fetch, eval, XMLHttpRequest) and report them as errors",
+    certificationFix: "remove forbidden calls from the bundle by replacing them with undefined; takes precedence over certificationAudit when both are set"
   };
 ```
 
