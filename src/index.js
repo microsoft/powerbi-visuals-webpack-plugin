@@ -224,7 +224,7 @@ class PowerBICustomVisualsWebpackPlugin {
 			}
 		};
 
-		const checkIdentifier = (path, node) => {
+		const checkForbiddenIdentifier = (path, node) => {
 			if (node.isIdentifier()) {
 				checkAndReplace(path, node.node.name);
 			}
@@ -232,13 +232,13 @@ class PowerBICustomVisualsWebpackPlugin {
 
 		traverse(parsedCode, {
 			CallExpression(path) {
-				checkIdentifier(path, path.get("callee"));
+				checkForbiddenIdentifier(path, path.get("callee"));
 			},
 			NewExpression(path) {
-				checkIdentifier(path, path.get("callee"));
+				checkForbiddenIdentifier(path, path.get("callee"));
 			},
 			MemberExpression(path) {
-				checkIdentifier(path, path.get("property"));
+				checkForbiddenIdentifier(path, path.get("property"));
 			},
 		});
 
@@ -250,29 +250,27 @@ class PowerBICustomVisualsWebpackPlugin {
 		const entries = Object.entries(foundCalls);
 		const total = entries.reduce((sum, [, count]) => sum + count, 0);
 
-		if (total === 0 && !audit) return;
+		if (total === 0 && !audit && !forceFix) return;
 
 		logger.separator();
 		logger.info("External requests audit:");
+		logger.info(
+			"Read more about certification requirements here: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified#not-allowed",
+		);
 
 		if (total === 0) {
 			logger.info("No external requests found in the visual.");
-			logger.separator();
-			return;
-		}
-
-		for (const [name, count] of entries) {
-			logger.warn(`${name} - Found ${count} times`);
+		} else {
+			for (const [name, count] of entries) {
+				logger.warn(`${name} - Found ${count} times`);
+			}
 		}
 
 		if (forceFix) {
 			logger.warn(
 				`${total} forbidden calls were removed. Test the visual before publishing.`,
 			);
-		} else if (audit) {
-			logger.info(
-				"Read more about certification requirements here: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified#not-allowed",
-			);
+		} else if (total > 0) {
 			logger.error(
 				`Found ${total} external request(s) in resulted package. Compile the package with --certification-fix flag to remove forbidden requests.`,
 			);
