@@ -2,6 +2,10 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 5.0.1
+
+* Fixed misleading output when no dangerous functions are found during certification audit or fix
+
 ## 5.0.0
 
 * Updated packages

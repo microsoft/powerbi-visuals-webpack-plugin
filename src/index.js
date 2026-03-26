@@ -18,6 +18,7 @@ const pluginTemplate = require("../templates/plugin-template");
 const jsonTemplate = require("../templates/package-json-template");
 
 const DEBUG = "_DEBUG";
+const FORBIDDEN_CALLS = ["fetch", "eval", "XMLHttpRequest"];
 
 const base64Img = (filepath) => {
 	let imageAsBase64 = fs.readFileSync(filepath, "base64"),
@@ -213,73 +214,69 @@ class PowerBICustomVisualsWebpackPlugin {
 			sourceType: "module",
 			plugins: ["jsx"],
 		});
-		let certificationAudit = {
-			foundCalls: {},
-			total: 0,
-		};
-		const callsToCheck = ["fetch", "eval", "XMLHttpRequest"];
+		const foundCalls = {};
 
-		// Helper function to check and replace forbidden calls
 		const checkAndReplace = (node, name) => {
-			if (callsToCheck.includes(name)) {
-				certificationAudit.foundCalls[name] =
-					(certificationAudit.foundCalls[name] || 0) + 1;
-				certificationAudit.total++;
-				if (forceFix) {
-					node.replaceWithSourceString("undefined");
-				}
+			if (!FORBIDDEN_CALLS.includes(name)) return;
+			foundCalls[name] = (foundCalls[name] || 0) + 1;
+			if (forceFix) {
+				node.replaceWithSourceString("undefined");
+			}
+		};
+
+		const checkForbiddenIdentifier = (path, node) => {
+			if (node.isIdentifier()) {
+				checkAndReplace(path, node.node.name);
 			}
 		};
 
 		traverse(parsedCode, {
 			CallExpression(path) {
-				const callee = path.get("callee");
-				if (callee.isIdentifier()) {
-					checkAndReplace(path, callee.node.name);
-				}
+				checkForbiddenIdentifier(path, path.get("callee"));
 			},
-
 			NewExpression(path) {
-				const callee = path.get("callee");
-				if (callee.isIdentifier()) {
-					checkAndReplace(path, callee.node.name);
-				}
+				checkForbiddenIdentifier(path, path.get("callee"));
 			},
-
 			MemberExpression(path) {
-				const property = path.get("property");
-
-				if (property.isIdentifier()) {
-					checkAndReplace(path, property.node.name);
-				}
+				checkForbiddenIdentifier(path, path.get("property"));
 			},
 		});
 
-		this.logAudit(certificationAudit, forceFix, audit, callsToCheck);
+		this.logAudit(foundCalls, forceFix, audit);
 		return generate(parsedCode, { retainLines: true }).code;
 	}
 
-	logAudit(certificationAudit, forceFix, audit, callsToCheck) {
+	logAudit(foundCalls, forceFix, audit) {
+		const entries = Object.entries(foundCalls);
+		const total = entries.reduce((sum, [, count]) => sum + count, 0);
+
+		if (total === 0 && !audit && !forceFix) return;
+
+		logger.separator();
+		logger.info("External requests audit:");
+		logger.info(
+			"Read more about certification requirements here: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified#not-allowed",
+		);
+
+		if (total === 0) {
+			logger.info("No external requests found in the visual.");
+		} else {
+			for (const [name, count] of entries) {
+				logger.warn(`${name} - Found ${count} times`);
+			}
+		}
+
 		if (forceFix) {
 			logger.warn(
-				`${certificationAudit.total} entries of ${callsToCheck.join(", ")} were removed. Test the visual before publishing`,
+				`${total} forbidden calls were removed. Test the visual before publishing.`,
 			);
-		} else if (audit) {
-			logger.separator();
-			logger.info("External requests audit:");
-			Object.keys(certificationAudit.foundCalls).forEach((key) => {
-				logger.error(
-					`${key} - Found ${certificationAudit.foundCalls[key]} times`,
-				);
-			});
-			logger.info(
-				"Read more about certification requirements here: https://learn.microsoft.com/en-us/power-bi/developer/visuals/power-bi-custom-visuals-certified#not-allowed",
-			);
+		} else if (total > 0) {
 			logger.error(
-				`Found ${certificationAudit.total} external requests in resulted package. Compile the package with --certification-fix flag to remove forbidden requests.`,
+				`Found ${total} external request(s) in resulted package. Compile the package with --certification-fix flag to remove forbidden requests.`,
 			);
-			logger.separator();
 		}
+
+		logger.separator();
 	}
 
 	async _beforeCompile(callback) {
