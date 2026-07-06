@@ -423,27 +423,51 @@ class PowerBICustomVisualsWebpackPlugin {
 		);
 
 		if (this.options.generateResources) {
-			operations.push(
-				this.outputFile(
-					path.join(resourcePath, "visual.js"),
-					config.content.js,
-				),
-				this.outputFile(
-					path.join(
-						resourcePath,
-						`${prodConfig.visual.guid}.pbiviz.json`,
+			if (config.content.js != null) {
+				operations.push(
+					this.outputFile(
+						path.join(resourcePath, "visual.js"),
+						config.content.js,
+						{
+							encoding: ENCODING
+						}
 					),
-					JSON.stringify(prodConfig),
-				),
-				this.outputFile(
-					path.join(resourcePath, "visual.prod.js"),
-					config.content.js,
-				),
-				this.outputFile(
-					path.join(resourcePath, "visual.prod.css"),
-					config.content.css,
-				),
-			);
+				);
+				operations.push(
+					this.outputFile(
+						path.join(resourcePath, "visual.prod.js"),
+						config.content.js,
+						{
+							encoding: ENCODING
+						}
+					),
+				);
+			}
+			if (prodConfig != null) {
+				operations.push(
+					this.outputFile(
+						path.join(
+							resourcePath,
+							`${prodConfig.visual.guid}.pbiviz.json`,
+						),
+						JSON.stringify(prodConfig),
+						{
+							encoding: ENCODING
+						}
+					),
+				);
+			}
+			if (config.content.css != null) {
+				operations.push(
+					this.outputFile(
+						path.join(resourcePath, "visual.prod.css"),
+						config.content.css,
+						{
+							encoding: ENCODING
+						}
+					),
+				);
+			}
 		}
 
 		if (this.options.generatePbiviz) {
