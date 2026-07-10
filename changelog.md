@@ -2,6 +2,11 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 5.0.3
+
+* Generalized the null/undefined content guard in `outputFile` so empty assets are skipped with a warning instead of crashing the build
+* Updated ReadMe with dev-server configuration guidance (serving `status`/`pbiviz.json`, `_DEBUG` suffix, `writeToDisk`, `clean`)
+
 ## 5.0.2
 
 * Updated packages, resolved audit issues
