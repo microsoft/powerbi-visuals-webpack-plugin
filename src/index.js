@@ -423,51 +423,33 @@ class PowerBICustomVisualsWebpackPlugin {
 		);
 
 		if (this.options.generateResources) {
-			if (config.content.js != null) {
-				operations.push(
-					this.outputFile(
-						path.join(resourcePath, "visual.js"),
-						config.content.js,
-						{
-							encoding: ENCODING
-						}
+			operations.push(
+				this.outputFile(
+					path.join(resourcePath, "visual.js"),
+					config.content.js,
+				),
+			);
+			operations.push(
+				this.outputFile(
+					path.join(resourcePath, "visual.prod.js"),
+					config.content.js,
+				),
+			);
+			operations.push(
+				this.outputFile(
+					path.join(
+						resourcePath,
+						`${prodConfig.visual.guid}.pbiviz.json`,
 					),
-				);
-				operations.push(
-					this.outputFile(
-						path.join(resourcePath, "visual.prod.js"),
-						config.content.js,
-						{
-							encoding: ENCODING
-						}
-					),
-				);
-			}
-			if (prodConfig != null) {
-				operations.push(
-					this.outputFile(
-						path.join(
-							resourcePath,
-							`${prodConfig.visual.guid}.pbiviz.json`,
-						),
-						JSON.stringify(prodConfig),
-						{
-							encoding: ENCODING
-						}
-					),
-				);
-			}
-			if (config.content.css != null) {
-				operations.push(
-					this.outputFile(
-						path.join(resourcePath, "visual.prod.css"),
-						config.content.css,
-						{
-							encoding: ENCODING
-						}
-					),
-				);
-			}
+					JSON.stringify(prodConfig),
+				),
+			);
+			operations.push(
+				this.outputFile(
+					path.join(resourcePath, "visual.prod.css"),
+					config.content.css,
+				),
+			);
 		}
 
 		if (this.options.generatePbiviz) {
@@ -524,6 +506,12 @@ class PowerBICustomVisualsWebpackPlugin {
 	}
 
 	outputFile(filePath, content) {
+		if (content == null) {
+			logger.warn(
+				`Skipping write of "${filePath}": content is empty (received ${content}).`,
+			);
+			return Promise.resolve();
+		}
 		return fs.outputFile(filePath, content, { encoding: ENCODING });
 	}
 }
