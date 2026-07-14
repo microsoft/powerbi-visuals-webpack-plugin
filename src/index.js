@@ -113,7 +113,21 @@ class PowerBICustomVisualsWebpackPlugin {
 					callback();
 				})
 				.catch((ex) => {
-					[].concat(ex).map((ex) => logger.error(ex.message));
+					const errors = [].concat(ex);
+					errors.forEach((error) =>
+						logger.error(error.message ?? error),
+					);
+					// Fail the compilation instead of leaving webpack hanging
+					// (the callback was previously never invoked on error).
+					callback(
+						errors[0] instanceof Error
+							? errors[0]
+							: new Error(
+									errors
+										.map((error) => error.message ?? error)
+										.join("; "),
+								),
+					);
 				});
 		});
 
@@ -427,12 +441,14 @@ class PowerBICustomVisualsWebpackPlugin {
 				this.outputFile(
 					path.join(resourcePath, "visual.js"),
 					config.content.js,
+					{ required: true },
 				),
 			);
 			operations.push(
 				this.outputFile(
 					path.join(resourcePath, "visual.prod.js"),
 					config.content.js,
+					{ required: true },
 				),
 			);
 			operations.push(
@@ -505,11 +521,17 @@ class PowerBICustomVisualsWebpackPlugin {
 		});
 	}
 
-	outputFile(filePath, content) {
+	outputFile(filePath, content, { required = false } = {}) {
 		if (content == null) {
-			logger.warn(
-				`Skipping write of "${filePath}": content is empty (received ${content}).`,
-			);
+			const details = `content for "${filePath}" is empty (received ${content}).`;
+			if (required) {
+				return Promise.reject(
+					new Error(
+						`Cannot write required visual asset: ${details} The compiled bundle is missing — check your webpack configuration.`,
+					),
+				);
+			}
+			logger.warn(`Skipping write of "${filePath}": ${details}`);
 			return Promise.resolve();
 		}
 		return fs.outputFile(filePath, content, { encoding: ENCODING });
