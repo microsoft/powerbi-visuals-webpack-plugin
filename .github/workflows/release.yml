@@ -4,12 +4,17 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     environment: automated-release
     runs-on: ubuntu-latest
+
     env: 
       GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,7 +32,7 @@ jobs:
         
       - name: Upload production artifacts
         run: |
-          gh release upload $TAG_NAME "lib.zip#release"
+          gh release upload $TAG_NAME "lib.zip"
           gh release edit $TAG_NAME --draft=false
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
