@@ -113,7 +113,21 @@ class PowerBICustomVisualsWebpackPlugin {
 					callback();
 				})
 				.catch((ex) => {
-					[].concat(ex).map((ex) => logger.error(ex.message));
+					const errors = [].concat(ex);
+					errors.forEach((error) =>
+						logger.error(error.message ?? error),
+					);
+					// Fail the compilation instead of leaving webpack hanging
+					// (the callback was previously never invoked on error).
+					callback(
+						errors[0] instanceof Error
+							? errors[0]
+							: new Error(
+									errors
+										.map((error) => error.message ?? error)
+										.join("; "),
+								),
+					);
 				});
 		});
 
@@ -423,51 +437,35 @@ class PowerBICustomVisualsWebpackPlugin {
 		);
 
 		if (this.options.generateResources) {
-			if (config.content.js != null) {
-				operations.push(
-					this.outputFile(
-						path.join(resourcePath, "visual.js"),
-						config.content.js,
-						{
-							encoding: ENCODING
-						}
+			operations.push(
+				this.outputFile(
+					path.join(resourcePath, "visual.js"),
+					config.content.js,
+					{ required: true },
+				),
+			);
+			operations.push(
+				this.outputFile(
+					path.join(resourcePath, "visual.prod.js"),
+					config.content.js,
+					{ required: true },
+				),
+			);
+			operations.push(
+				this.outputFile(
+					path.join(
+						resourcePath,
+						`${prodConfig.visual.guid}.pbiviz.json`,
 					),
-				);
-				operations.push(
-					this.outputFile(
-						path.join(resourcePath, "visual.prod.js"),
-						config.content.js,
-						{
-							encoding: ENCODING
-						}
-					),
-				);
-			}
-			if (prodConfig != null) {
-				operations.push(
-					this.outputFile(
-						path.join(
-							resourcePath,
-							`${prodConfig.visual.guid}.pbiviz.json`,
-						),
-						JSON.stringify(prodConfig),
-						{
-							encoding: ENCODING
-						}
-					),
-				);
-			}
-			if (config.content.css != null) {
-				operations.push(
-					this.outputFile(
-						path.join(resourcePath, "visual.prod.css"),
-						config.content.css,
-						{
-							encoding: ENCODING
-						}
-					),
-				);
-			}
+					JSON.stringify(prodConfig),
+				),
+			);
+			operations.push(
+				this.outputFile(
+					path.join(resourcePath, "visual.prod.css"),
+					config.content.css,
+				),
+			);
 		}
 
 		if (this.options.generatePbiviz) {
@@ -523,7 +521,19 @@ class PowerBICustomVisualsWebpackPlugin {
 		});
 	}
 
-	outputFile(filePath, content) {
+	outputFile(filePath, content, { required = false } = {}) {
+		if (content == null) {
+			const details = `content for "${filePath}" is empty (received ${content}).`;
+			if (required) {
+				return Promise.reject(
+					new Error(
+						`Cannot write required visual asset: ${details} The compiled bundle is missing — check your webpack configuration.`,
+					),
+				);
+			}
+			logger.warn(`Skipping write of "${filePath}": ${details}`);
+			return Promise.resolve();
+		}
 		return fs.outputFile(filePath, content, { encoding: ENCODING });
 	}
 }

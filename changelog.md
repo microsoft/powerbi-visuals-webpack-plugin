@@ -2,6 +2,12 @@
 
 This page contains information about changes to the **PowerBI-visuals-webpack-plugin**.
 
+## 5.0.3
+
+* Hardened `outputFile` with a required/optional distinction: optional assets with empty content (e.g. `visual.prod.css`) are skipped with a warning, while a missing required bundle (`visual.js`) now fails the build with a clear error instead of silently producing a broken package
+* Packaging errors now fail the webpack compilation cleanly instead of leaving it hanging (the `emit` hook callback is always invoked)
+* Updated ReadMe with dev-server configuration guidance (serving `status`/`pbiviz.json`, `_DEBUG` suffix, `writeToDisk`, `clean`)
+
 ## 5.0.2
 
 * Updated packages, resolved audit issues
